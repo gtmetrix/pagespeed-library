@@ -88,16 +88,6 @@ deps = {
   "src/testing/gtest": From(Var("chromium_deps_root")),
   "src/tools/grit": From(Var("chromium_deps_root")),
   "src/tools/gyp": From(Var("chromium_deps_root")),
-
-  "src/third_party/gflags": "/deps/gflags-2.0",
-  "src/third_party/giflib": "/deps/giflib-4.1.6",
-  "src/third_party/icu": "/deps/icu461",
-  "src/third_party/libjpeg": "/deps/jpeg-8c",
-  "src/third_party/libpng": "/deps/libpng-1.5.4",
-  "src/third_party/libwebp": "/deps/libwebp-0.2.1",
-  "src/third_party/nacl_sdk": "/deps/nacl_sdk",
-  "src/third_party/optipng": "/deps/optipng-0.7.4",
-  "src/third_party/zlib": "/deps/zlib-1.2.5",
 }
 
 
