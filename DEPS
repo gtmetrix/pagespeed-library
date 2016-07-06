@@ -13,88 +13,79 @@
 # limitations under the License.
 
 vars = {
-  "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_revision": "@161115",
-  "chromium_deps_root": "src/third_party/chromium_deps",
-  "modpagespeed_src": "http://modpagespeed.googlecode.com/svn/trunk",
-  "modpagespeed_revision": "@2456",
-  "libharu_trunk": "git://github.com/libharu/libharu.git",
-  "libharu_revision": "@RELEASE_2_2_0",
-  "protobuf_trunk": "http://protobuf.googlecode.com/svn/tags/2.4.1",
-  "protobuf_revision": "@head",
-  "drp_src": "http://domain-registry-provider.googlecode.com/svn/trunk",
-  "drp_revision": "@29",
+  "chromium_git": "https://chromium.googlesource.com",
+  "libpagespeed_svn": "https://github.com/pagespeed/page-speed/trunk",
 }
 
 deps = {
-  # Fetch chromium DEPS so we can sync our other dependencies relative
-  # to it.
-  Var("chromium_deps_root"):
-    File(Var("chromium_trunk") + "/src/DEPS" + Var("chromium_revision")),
-
   "src/testing":
-    Var("chromium_trunk") + "/src/testing" + Var("chromium_revision"),
+    Var("chromium_git") + "/chromium/src/testing@ba768d0e259684b5a1912d1330b7fd511df4f647",
 
   "src/third_party/chromium/src/build":
-    Var("chromium_trunk") + "/src/build" + Var("chromium_revision"),
+    Var("chromium_git") + "/chromium/src/build@4e3e69ad445b72e75b32c623003fd8843d6f17af",
 
   "src/third_party/chromium/src/base":
-    Var("chromium_trunk") + "/src/base" + Var("chromium_revision"),
+    Var("chromium_git") + "/chromium/src/base@f86bdec26aea6b2b056c89a83f5a4fafdcb96e73",
 
-  "src/build/ios":
-    Var("chromium_trunk") + "/src/build/ios" + Var("chromium_revision"),
-  "src/build/linux":
-    Var("chromium_trunk") + "/src/build/linux" + Var("chromium_revision"),
-  "src/build/mac":
-    Var("chromium_trunk") + "/src/build/mac" + Var("chromium_revision"),
-  "src/build/win":
-    Var("chromium_trunk") + "/src/build/win" + Var("chromium_revision"),
-  "src/build/util":
-    Var("chromium_trunk") + "/src/build/util" + Var("chromium_revision"),
-  "src/build/internal":
-    Var("chromium_trunk") + "/src/build/internal" + Var("chromium_revision"),
+# FIXME Manually copying over for now
+#  "src/build/ios":
+#    Var("chromium_trunk") + "/src/build/ios" + Var("chromium_revision"),
+#  "src/build/linux":
+#    Var("chromium_trunk") + "/src/build/linux" + Var("chromium_revision"),
+#  "src/build/mac":
+#    Var("chromium_trunk") + "/src/build/mac" + Var("chromium_revision"),
+#  "src/build/win":
+#    Var("chromium_trunk") + "/src/build/win" + Var("chromium_revision"),
+#  "src/build/util":
+#    Var("chromium_trunk") + "/src/build/util" + Var("chromium_revision"),
+#  "src/build/internal":
+#    Var("chromium_trunk") + "/src/build/internal" + Var("chromium_revision"),
 
-  "src/third_party/domain_registry_provider/src":
-    Var("drp_src") + "/src" + Var("drp_revision"),
+  "src/third_party/domain_registry_provider":
+    "https://github.com/pagespeed/domain-registry-provider.git@83e24aaa6b32649b462117c495934e43dfc879ca",
 
   "src/third_party/libharu/libharu":
-    Var("libharu_trunk") + Var("libharu_revision"),
+    "https://github.com/libharu/libharu.git@7f9ff9a349061e36f3b301409c0e4ed91de19bb7",
 
   "src/third_party/modp_b64":
-    Var("chromium_trunk") + "/src/third_party/modp_b64" +
-      Var("chromium_revision"),
+    Var("chromium_git") + "/chromium/src/third_party/modp_b64@42c1fe9d5a2d17370edf2debb365f6660e2aef3a",
 
   "src/third_party/protobuf":
-    (Var("chromium_trunk") + "/src/third_party/protobuf" +
-     Var("chromium_revision")),
+    "https://src.chromium.org/svn/trunk/src/third_party/protobuf@161115",
 
   "src/third_party/protobuf/java":
-    (Var("protobuf_trunk") + "/java/src/main/java" +
-     Var("protobuf_revision")),
+    "https://github.com/google/protobuf/tags/v2.4.1/java/src/main/java",
 
   "src/third_party/protobuf/java/descriptor":
-    File(Var("protobuf_trunk") + "/src/google/protobuf/descriptor.proto" +
-     Var("protobuf_revision")),
+    File("https://github.com/google/protobuf/tags/v2.4.1/src/google/protobuf/descriptor.proto"),
 
   "src/tools/clang":
-    (Var("chromium_trunk") + "/src/tools/clang" + Var("chromium_revision")),
+    Var("chromium_git") + "/chromium/src/tools/clang@b363ee90f841578d66b4c4f6481f0107bcf800e9",
 
-  "src/googleurl": From(Var("chromium_deps_root")),
+  "src/googleurl":
+    Var("chromium_git") + "/external/google-url@eb8b21b16f6e39375bf4048567d4844027e47186",
 
-  "src/net/instaweb":
-    Var("modpagespeed_src") + "/src/net/instaweb" + Var("modpagespeed_revision"),
+  "src/third_party/mod_pagespeed":
+    "https://github.com/pagespeed/mod_pagespeed.git@65c07fc394d56ea7d74f6b65a7b3d12fb4ab1b6c",
 
-  "src/testing/gmock": From(Var("chromium_deps_root")),
-  "src/testing/gtest": From(Var("chromium_deps_root")),
-  "src/tools/grit": From(Var("chromium_deps_root")),
-  "src/tools/gyp": From(Var("chromium_deps_root")),
+  "src/testing/gmock":
+    "https://github.com/google/googlemock.git@79a367eb217fcd47e2beaf8c0f87fe6d5926f739",
+
+  "src/testing/gtest":
+    "https://github.com/google/googletest.git@2147489625ea8071ca560462f19b1ceb8940a229",
+
+  "src/tools/grit":
+    Var("chromium_git") + "/external/grit-i18n@83717e82a9b5e0c629ff4f1078d50503ffd2ae75",
+
+  "src/tools/gyp":
+    Var("chromium_git") + "/external/gyp@523297f43e0c96a84e53306f8fddebeb483b27f1",
 }
 
 
 deps_os = {
   "win": {
-    "src/third_party/cygwin": From(Var("chromium_deps_root")),
-    "src/third_party/python_26": From(Var("chromium_deps_root")),
+#    "src/third_party/cygwin": From(Var("chromium_deps_root")),
+#    "src/third_party/python_26": From(Var("chromium_deps_root")),
   },
   "mac": {
   },
