@@ -26,6 +26,7 @@
 
 namespace {
 
+const char* kHttp2 = "HTTP/2";
 const char* kHttp11 = "HTTP/1.1";
 const char* kHttp10 = "HTTP/1.0";
 const char* kHttpUnknown = "Unknown";
@@ -118,7 +119,9 @@ void Resource::SetRequestBody(const std::string& value) {
 }
 
 void Resource::SetResponseProtocol(const std::string& protocol) {
-  if (string_util::StringCaseEqual(protocol, kHttp11)) {
+  if (string_util::StringCaseEqual(protocol, kHttp2)) {
+    SetResponseProtocol(HTTP_2);
+  } else if (string_util::StringCaseEqual(protocol, kHttp11)) {
     SetResponseProtocol(HTTP_11);
   } else if (string_util::StringCaseEqual(protocol, kHttp10)) {
     SetResponseProtocol(HTTP_10);
@@ -131,6 +134,8 @@ void Resource::SetResponseProtocol(const std::string& protocol) {
 
 const char* Resource::GetResponseProtocolString() const {
   switch (GetResponseProtocol()) {
+    case HTTP_2:
+      return kHttp2;
     case HTTP_11:
       return kHttp11;
     case HTTP_10:
