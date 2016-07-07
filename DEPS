@@ -14,7 +14,6 @@
 
 vars = {
   "chromium_git": "https://chromium.googlesource.com",
-  "libpagespeed_svn": "https://github.com/pagespeed/page-speed/trunk",
 }
 
 deps = {
@@ -26,20 +25,6 @@ deps = {
 
   "src/third_party/chromium/src/base":
     Var("chromium_git") + "/chromium/src/base@f86bdec26aea6b2b056c89a83f5a4fafdcb96e73",
-
-# FIXME Manually copying over for now
-#  "src/build/ios":
-#    Var("chromium_trunk") + "/src/build/ios" + Var("chromium_revision"),
-#  "src/build/linux":
-#    Var("chromium_trunk") + "/src/build/linux" + Var("chromium_revision"),
-#  "src/build/mac":
-#    Var("chromium_trunk") + "/src/build/mac" + Var("chromium_revision"),
-#  "src/build/win":
-#    Var("chromium_trunk") + "/src/build/win" + Var("chromium_revision"),
-#  "src/build/util":
-#    Var("chromium_trunk") + "/src/build/util" + Var("chromium_revision"),
-#  "src/build/internal":
-#    Var("chromium_trunk") + "/src/build/internal" + Var("chromium_revision"),
 
   "src/third_party/domain_registry_provider":
     "https://github.com/pagespeed/domain-registry-provider.git@83e24aaa6b32649b462117c495934e43dfc879ca",
