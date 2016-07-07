@@ -124,6 +124,8 @@ bool IsLikelyTrackingPixel(const PagespeedInput& input,
 // included in the HTML document or written using document.write().
 bool IsParserInserted(const ResourceEvaluation& evaluation);
 
+// Returns true if the resource was delivered with any protocol other than SPDY.
+bool WasDeliveredWithSpdy(const Resource& resource);
 
 // Returns the topmost CSS resource that was not loaded via an @import rule.
 const Resource* GetMainCssResource(const ResourceFetch& start);
