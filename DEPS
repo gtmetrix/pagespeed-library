@@ -27,7 +27,7 @@ deps = {
     Var("chromium_git") + "/chromium/src/base@f86bdec26aea6b2b056c89a83f5a4fafdcb96e73",
 
   "src/third_party/domain_registry_provider":
-    "https://github.com/pagespeed/domain-registry-provider.git@83e24aaa6b32649b462117c495934e43dfc879ca",
+    "https://github.com/pagespeed/domain-registry-provider.git@e9b72eaef413335eb054a5982277cb2e42eaead7",
 
   "src/third_party/libharu/libharu":
     "https://github.com/libharu/libharu.git@7f9ff9a349061e36f3b301409c0e4ed91de19bb7",
