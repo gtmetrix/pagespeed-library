@@ -39,6 +39,19 @@ void FindExternalResourcesInCssBlock(
     const std::string& resource_url, const std::string& css_body,
     std::set<std::string>* external_resource_urls);
 
+// Get all imported URLs contained in the body of the given CSS
+// resource.  The given resource object must have type CSS.
+void FindImportsInCssResource(
+    const Resource& resource,
+    std::set<std::string>* imported_urls);
+
+// Get all imported URLs contained in the given CSS text.  This can
+// either be the body of an external CSS resource, or the contents of an inline
+// CSS block in an HTML resource.
+void FindImportsInCssBlock(
+    const std::string& resource_url, const std::string& css_body,
+    std::set<std::string>* imported_urls);
+
 // These function is exposed only for unit testing.  It should not be called by
 // non-test code.
 void RemoveCssComments(const std::string& in, std::string* out);

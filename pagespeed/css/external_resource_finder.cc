@@ -28,6 +28,7 @@ const char* kCommentStart = "/*";
 const char* kCommentEnd = "*/";
 const char* kCssImportDirective = "@import";
 const char* kCssUrlDirective = "url(";
+const char* kFragmentIdentifier = "#";
 const size_t kCommentStartLen = strlen(kCommentStart);
 const size_t kCommentEndLen = strlen(kCommentEnd);
 const size_t kCssUrlDirectiveLen = strlen(kCssUrlDirective);
@@ -96,7 +97,7 @@ void FindExternalResourcesInCssBlock(
       }
     }
 
-    if (!url.empty()) {
+    if (!url.empty() && !pagespeed::string_util::StringCaseStartsWith(url, kFragmentIdentifier)) {
       // Resolve the URI relative to its parent stylesheet.
       std::string resolved_url =
           pagespeed::uri_util::ResolveUri(url, resource_url);
@@ -104,6 +105,60 @@ void FindExternalResourcesInCssBlock(
         LOG(INFO) << "Unable to ResolveUri " << url;
       } else {
         external_resource_urls->insert(resolved_url);
+      }
+    }
+  }
+}
+
+void FindImportsInCssResource(
+    const Resource& resource,
+    std::set<std::string>* imported_urls) {
+  if (resource.GetResourceType() != pagespeed::CSS) {
+    LOG(DFATAL) << "Non-CSS resource passed to"
+                << " FindImportsInCssResource.";
+    return;
+  }
+  FindImportsInCssBlock(
+      resource.GetRequestUrl(), resource.GetResponseBody(),
+      imported_urls);
+}
+
+void FindImportsInCssBlock(
+    const std::string& resource_url, const std::string& css_body,
+    std::set<std::string>* imported_urls) {
+  std::string body;
+
+  // Make our search easier by removing comments. We could be more
+  // efficient by attempting to skip over comments as we walk the
+  // string, but this would complicate the logic. It's simpler to
+  // remove comments first, then iterate over the string.
+  RemoveCssComments(css_body, &body);
+  CssTokenizer tokenizer(body);
+  std::string token;
+  CssTokenizer::CssTokenType type;
+  std::string url;
+  while (tokenizer.GetNextToken(&token, &type)) {
+    url.clear();
+    if (type == CssTokenizer::IDENT &&
+               pagespeed::string_util::LowerCaseEqualsASCII(
+                   token, kCssImportDirective)) {
+      // @import can contain either a url, e.g. "url('foo.css')" or a
+      // plain string, e.g. "foo.css". Either way, it will be the
+      // immediate next token.
+      if (tokenizer.GetNextToken(&token, &type) &&
+          (type == CssTokenizer::URL || type == CssTokenizer::STRING)) {
+        url = token;
+      }
+    }
+
+    if (!url.empty() && !pagespeed::string_util::StringCaseStartsWith(url, kFragmentIdentifier)) {
+      // Resolve the URI relative to its parent stylesheet.
+      std::string resolved_url =
+          pagespeed::uri_util::ResolveUri(url, resource_url);
+      if (resolved_url.empty()) {
+        LOG(INFO) << "Unable to ResolveUri " << url;
+      } else {
+        imported_urls->insert(resolved_url);
       }
     }
   }

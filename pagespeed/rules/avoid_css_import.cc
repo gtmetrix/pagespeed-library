@@ -56,18 +56,22 @@ bool AvoidCssImport::AppendResults(const RuleInput& rule_input,
       continue;
     }
 
-    std::set<std::string> external_urls;
-    css::FindExternalResourcesInCssResource(resource, &external_urls);
+    std::string resource_url = resource.GetRequestUrl();
+    std::set<std::string> found_urls;
+    css::FindImportsInCssResource(resource, &found_urls);
 
     std::set<std::string> imported_urls;
-    for (std::set<std::string>::const_iterator it = external_urls.begin(),
-             end = external_urls.end(); it != end; ++it) {
+    for (std::set<std::string>::const_iterator it = found_urls.begin(),
+             end = found_urls.end(); it != end; ++it) {
       const Resource* imported_resource = input.GetResourceWithUrlOrNull(*it);
       if (imported_resource == NULL) {
         continue;
       }
       if (imported_resource->GetResourceType() == pagespeed::CSS) {
-        imported_urls.insert(imported_resource->GetRequestUrl());
+        std::string imported_url = imported_resource->GetRequestUrl();
+        if (imported_url != resource_url) {
+          imported_urls.insert(imported_url);
+        }
       }
     }
     if (imported_urls.empty()) {
