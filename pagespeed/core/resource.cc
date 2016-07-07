@@ -127,7 +127,7 @@ void Resource::SetResponseProtocol(const std::string& protocol) {
     SetResponseProtocol(HTTP_10);
   } else {
     // Log what unknown protocol is used here.
-    LOG(INFO) << "Setting unkown protocol " << protocol;
+    LOG(INFO) << "Setting unknown protocol " << protocol;
     SetResponseProtocol(UNKNOWN_PROTOCOL);
   }
 }
