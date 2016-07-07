@@ -151,6 +151,13 @@ bool AvoidLandingPageRedirects::AppendResults(
     if (idx == size - 1) {
       continue;  // This is the last redirection.
     }
+    // Chrome logs an internal redirect for resources requested over HTTPS
+    // because the server uses Strict-Transport-Security (HSTS). Because
+    // it isn't a server-prompted redirect it should be ignored.
+    if (resource->GetResponseStatusCode() == 307 &&
+        resource->GetResponseHeader("Non-Authoritative-Reason") != "") {
+      continue;
+    }
 
     const std::string& url = resource->GetRequestUrl();
     GURL gurl(url);
