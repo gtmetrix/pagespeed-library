@@ -35,6 +35,10 @@ deps = {
   "src/third_party/modp_b64":
     Var("chromium_git") + "/chromium/src/third_party/modp_b64@42c1fe9d5a2d17370edf2debb365f6660e2aef3a",
 
+  # 0.5.1
+  "src/third_party/libwebp":
+    Var("chromium_git") + "/webm/libwebp@3d97bb75144147e47db278ec76e5e70c6b2243db",
+
   "src/third_party/protobuf":
     "https://src.chromium.org/svn/trunk/src/third_party/protobuf@161115",
 

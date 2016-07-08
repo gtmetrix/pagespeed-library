@@ -4,6 +4,7 @@ testing/
 third_party/chromium/
 third_party/domain_registry_provider/
 third_party/libharu/libharu/
+third_party/libwebp/
 third_party/mod_pagespeed/
 third_party/modp_b64/
 third_party/protobuf/
