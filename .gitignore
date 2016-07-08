@@ -9,6 +9,7 @@ third_party/modp_b64/
 third_party/protobuf/
 tools/
 Makefile
+*.Makefile
 *.mk
 *.pyc
 *.sw?
