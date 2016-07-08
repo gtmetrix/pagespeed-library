@@ -160,7 +160,8 @@ bool IsCompressedResource(const Resource& resource) {
   // header, and if so, assume that encoding was applied to the
   // response.
   return encoding.find("gzip") != std::string::npos ||
-      encoding.find("deflate") != std::string::npos;
+      encoding.find("deflate") != std::string::npos ||
+      encoding.find("br") != std::string::npos;
 }
 
 namespace {
