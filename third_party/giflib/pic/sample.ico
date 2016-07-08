@@ -25,8 +25,6 @@ screen map
 	rgb 255 255 255	is F	# White
 end
 
-include solid2.gif	# Use as 1st image
-
 #
 # Shield
 #
@@ -51,8 +49,8 @@ image bits 16 by 16
 ################
 ################
 
-extension fe	# Matches conventions used elsewhere in giflib
-This is a klugey way of embedding a comment in the GIF.
+comment
+This is a klugey way of embedding a comment in a GIF.
 end
 
 #

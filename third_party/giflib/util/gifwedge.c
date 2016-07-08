@@ -1,100 +1,64 @@
 /*****************************************************************************
-*   "Gif-Lib" - Yet another gif library.				     *
-*									     *
-* Written by:  Gershon Elber				Ver 0.1, Jul. 1989   *
-******************************************************************************
-* Program to create a test image of White and Red/Green/Blue levels for      *
-* test purposes. The Primary (RGB) and Secondary (YCM) are also displayed.   *
-* background.								     *
-* Options:								     *
-* -q : quiet printing mode.						     *
-* -s Width Height : set image size.					     *
-* -l levels : number of color levels.					     *
-* -h : on-line help.							     *
-******************************************************************************
-* History:								     *
-* 4 Jan 90 - Version 1.0 by Gershon Elber.				     *
+
+gifwedge - create a GIF test pattern
+
 *****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef __MSDOS__
 #include <stdlib.h>
-#include <alloc.h>
-#endif /* __MSDOS__ */
-
-#ifndef __MSDOS__
-#include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
+
 #include "gif_lib.h"
 #include "getarg.h"
 
-#define PROGRAM_NAME	"GifWedge"
+#define PROGRAM_NAME	"gifwedge"
 
 #define DEFAULT_WIDTH	640
 #define DEFAULT_HEIGHT	350
 
 #define DEFAULT_NUM_LEVELS	16     /* Number of colors to gen the image. */
 
-#ifdef __MSDOS__
-extern unsigned int
-    _stklen = 16384;			     /* Increase default stack size. */
-#endif /* __MSDOS__ */
-
-#ifdef SYSV
-static char *VersionStr =
-        "Gif toolkit module,\t\tGershon Elber\n\
-	(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = "GifWedge q%- l%-#Lvls!d s%-Width|Height!d!d h%-";
-#else
 static char
     *VersionStr =
 	PROGRAM_NAME
-	GIF_LIB_VERSION
+	VERSION_COOKIE
 	"	Gershon Elber,	"
 	__DATE__ ",   " __TIME__ "\n"
 	"(C) Copyright 1989 Gershon Elber.\n";
 static char
     *CtrlStr =
 	PROGRAM_NAME
-	" q%- l%-#Lvls!d s%-Width|Height!d!d h%-";
-#endif /* SYSV */
+	" v%- l%-#Lvls!d s%-Width|Height!d!d h%-";
 
 static int
     NumLevels = DEFAULT_NUM_LEVELS,
     ImageWidth = DEFAULT_WIDTH,
     ImageHeight = DEFAULT_HEIGHT;
 
-static void QuitGifError(GifFileType *GifFile);
-
 /******************************************************************************
-* Interpret the command line and scan the given GIF file.		      *
+ Interpret the command line and scan the given GIF file.
 ******************************************************************************/
 int main(int argc, char **argv)
 {
-    int	i, j, l, c, Error, LevelStep, LogNumLevels,
-	Count = 0, LevelsFlag = FALSE, SizeFlag = FALSE, HelpFlag = FALSE;
+    int	i, j, l, c, LevelStep, LogNumLevels, ErrorCode, Count = 0; 
+    bool Error, LevelsFlag = false, SizeFlag = false, HelpFlag = false;
     GifRowType Line;
     ColorMapObject *ColorMap;
     GifFileType *GifFile;
 
     if ((Error = GAGetArgs(argc, argv, CtrlStr,
-		&GifQuietPrint, &LevelsFlag, &NumLevels,
+		&GifNoisyPrint, &LevelsFlag, &NumLevels,
 		&SizeFlag, &ImageWidth, &ImageHeight,
-		&HelpFlag)) != FALSE) {
+		&HelpFlag)) != false) {
 	GAPrintErrMsg(Error);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_FAILURE);
     }
 
     if (HelpFlag) {
-	fprintf(stderr, VersionStr);
+	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_SUCCESS);
     }
@@ -111,13 +75,15 @@ int main(int argc, char **argv)
     ImageHeight = (ImageHeight / 7) * 7;
 
     /* Open stdout for the output file: */
-    if ((GifFile = EGifOpenFileHandle(1)) == NULL)
-	QuitGifError(GifFile);
+    if ((GifFile = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     /* Dump out screen description with given size and generated color map:  */
     /* The color map has 7 NumLevels colors for White, Red, Green and then   */
     /* The secondary colors Yellow Cyan and magenta.			     */
-    if ((ColorMap = MakeMapObject(8 * NumLevels, NULL)) == NULL)
+    if ((ColorMap = GifMakeMapObject(8 * NumLevels, NULL)) == NULL)
 	GIF_EXIT("Failed to allocate memory required, aborted.");
 
     for (i = 0; i < 8; i++)				   /* Set color map. */
@@ -129,15 +95,18 @@ int main(int argc, char **argv)
 	    ColorMap->Colors[c].Blue = (i == 0 || i == 3 || i == 5 || i == 6) * l;
 	}
 
-    if (EGifPutScreenDesc(GifFile,
-	ImageWidth, ImageHeight, LogNumLevels, 0, ColorMap)
-	== GIF_ERROR)
-	QuitGifError(GifFile);
+    if (EGifPutScreenDesc(GifFile, ImageWidth, ImageHeight, LogNumLevels, 0, ColorMap) == GIF_ERROR) {
+	PrintGifError(GifFile->Error);
+    }
 
     /* Dump out the image descriptor: */
     if (EGifPutImageDesc(GifFile,
-	0, 0, ImageWidth, ImageHeight, FALSE, NULL) == GIF_ERROR)
-	QuitGifError(GifFile);
+			 0, 0, ImageWidth, ImageHeight, 
+			 false, NULL) == GIF_ERROR) {
+
+	PrintGifError(GifFile->Error);
+	exit(EXIT_FAILURE);
+    }
 
     GifQprintf("\n%s: Image 1 at (%d, %d) [%dx%d]:     ",
 		    PROGRAM_NAME, GifFile->Image.Left, GifFile->Image.Top,
@@ -153,24 +122,20 @@ int main(int argc, char **argv)
 	    for (j = 0; j < ImageWidth / NumLevels; j++)
 		Line[l++] = i + NumLevels * c;
 	for (i = 0; i < ImageHeight / 7; i++) {
-	    if (EGifPutLine(GifFile, Line, ImageWidth) == GIF_ERROR)
-		QuitGifError(GifFile);
+	    if (EGifPutLine(GifFile, Line, ImageWidth) == GIF_ERROR) {
+		PrintGifError(GifFile->Error);
+		exit(EXIT_FAILURE);
+	    }
 	    GifQprintf("\b\b\b\b%-4d", Count++);
 	}
     }
 
-    if (EGifCloseFile(GifFile) == GIF_ERROR)
-	QuitGifError(GifFile);
+    if (EGifCloseFile(GifFile, &ErrorCode) == GIF_ERROR) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     return 0;
 }
 
-/******************************************************************************
-* Close output file (if open), and exit.				      *
-******************************************************************************/
-static void QuitGifError(GifFileType *GifFile)
-{
-    PrintGifError();
-    if (GifFile != NULL) DGifCloseFile(GifFile);
-    exit(EXIT_FAILURE);
-}
+/* end */

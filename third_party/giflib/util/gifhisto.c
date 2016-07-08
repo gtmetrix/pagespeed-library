@@ -1,72 +1,35 @@
 /*****************************************************************************
-*   "Gif-Lib" - Yet another gif library.				     *
-*									     *
-* Written by:  Gershon Elber				Ver 0.1, Jul. 1989   *
-******************************************************************************
-* Program to create histogram of the colors used by the given GIF file.      *
-* Dumps out GIF file of constants size GIF_WIDTH by GIF_HEIGHT.		     *
-* Options:								     *
-* -q : quiet printing mode.						     *
-* -t : Dump out text instead of GIF - #Colors lines, each with #appearances. *
-* -i W H : size of GIF image to generate. Colors of input GIF file are	     *
-*      spread homogeneously along Height, which better by dividable by the   *
-*      number of colors in input image.					     *
-* -n n : select image number to generate histogram to (1 by default).	     *
-* -b : strip off background color count.				     *
-* -h : on-line help							     *
-******************************************************************************
-* History:								     *
-* 8 Jul 89 - Version 1.0 by Gershon Elber.				     *
+
+gifhisto - make a color histogram from image color frequencies
+
 *****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef __MSDOS__
 #include <stdlib.h>
-#include <alloc.h>
-#endif /* __MSDOS__ */
-
-#ifndef __MSDOS__
-#include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
+
 #include "gif_lib.h"
 #include "getarg.h"
 
-#define PROGRAM_NAME	"GifHisto"
+#define PROGRAM_NAME	"gifhisto"
 
 #define DEFAULT_HISTO_WIDTH	100	      /* Histogram image diemnsions. */
 #define DEFAULT_HISTO_HEIGHT	256
 #define HISTO_BITS_PER_PIXEL	2	/* Size of bitmap for histogram GIF. */
 
-#ifdef __MSDOS__
-extern unsigned int
-    _stklen = 16384;			     /* Increase default stack size. */
-#endif /* __MSDOS__ */
-
-#ifdef SYSV
-static char *VersionStr =
-        "Gif toolkit module,\t\tGershon Elber\n\
-	(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = "GifHisto q%- t%- s%-Width|Height!d!d n%-ImageNumber!d b%- h%- GifFile!*s";
-#else
 static char
     *VersionStr =
 	PROGRAM_NAME
-	GIF_LIB_VERSION
+	VERSION_COOKIE
 	"	Gershon Elber,	"
 	__DATE__ ",   " __TIME__ "\n"
 	"(C) Copyright 1989 Gershon Elber.\n";
 static char
     *CtrlStr =
 	PROGRAM_NAME
-	" q%- t%- s%-Width|Height!d!d n%-ImageNumber!d b%- h%- GifFile!*s";
-#endif /* SYSV */
+	" v%- t%- s%-Width|Height!d!d n%-ImageNumber!d b%- h%- GifFile!*s";
 
 static int
     ImageWidth = DEFAULT_HISTO_WIDTH,
@@ -83,14 +46,14 @@ static GifColorType
 static void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut);
 
 /******************************************************************************
-* Interpret the command line and scan the given GIF file.		      *
+ Interpret the command line and scan the given GIF file.
 ******************************************************************************/
 int main(int argc, char **argv)
 {
-    int	i, j, Size, Error, NumFiles, ExtCode, CodeSize, NumColors = 2, Color,
-	Count, ImageNum = 0, TextFlag = FALSE, SizeFlag = FALSE,
-	ImageNFlag = FALSE, BackGroundFlag = FALSE, HelpFlag = FALSE;
-    long Scaler, Histogram[256];
+    int	i, j, ErrorCode, NumFiles, ExtCode, CodeSize, NumColors = 2, ImageNum = 0;
+    bool Error, TextFlag = false, SizeFlag = false,
+	ImageNFlag = false, BackGroundFlag = false, HelpFlag = false;
+    long Histogram[256];
     GifRecordType RecordType;
     GifByteType *Extension, *CodeBlock;
     char **FileName = NULL;
@@ -98,10 +61,10 @@ int main(int argc, char **argv)
     GifFileType *GifFileIn = NULL, *GifFileOut = NULL;
 
     /* Same image dimension vars for both Image & ImageN as only one allowed */
-    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifQuietPrint,
+    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifNoisyPrint,
 		&TextFlag, &SizeFlag, &ImageWidth, &ImageHeight,
 		&ImageNFlag, &ImageN, &BackGroundFlag,
-		&HelpFlag, &NumFiles, &FileName)) != FALSE ||
+		&HelpFlag, &NumFiles, &FileName)) != false ||
 		(NumFiles > 1 && !HelpFlag)) {
 	if (Error)
 	    GAPrintErrMsg(Error);
@@ -112,19 +75,23 @@ int main(int argc, char **argv)
     }
 
     if (HelpFlag) {
-	fprintf(stderr, VersionStr);
+	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_SUCCESS);
     }
 
     if (NumFiles == 1) {
-	if ((GifFileIn = DGifOpenFileName(*FileName)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if ((GifFileIn = DGifOpenFileName(*FileName, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
     else {
-	/* Use the stdin instead: */
-	if ((GifFileIn = DGifOpenFileHandle(0)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	/* Use stdin instead: */
+	if ((GifFileIn = DGifOpenFileHandle(0, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
 
     for (i = 0; i < 256; i++) Histogram[i] = 0;		  /* Reset counters. */
@@ -192,17 +159,20 @@ int main(int argc, char **argv)
 		break;
 	    case TERMINATE_RECORD_TYPE:
 		break;
-	    default:		    /* Should be traps by DGifGetRecordType. */
+	    default:		    /* Should be trapped by DGifGetRecordType. */
 		break;
 	}
     }
     while (RecordType != TERMINATE_RECORD_TYPE);
 
-    /* We we requested to kill back ground count: */
+    /* We requested suppression of the background count: */
     if (BackGroundFlag) Histogram[GifFileIn->SBackGroundColor] = 0;
 
-    if (DGifCloseFile(GifFileIn) == GIF_ERROR)
-	QuitGifError(GifFileIn, GifFileOut);
+    if (DGifCloseFile(GifFileIn, &ErrorCode) == GIF_ERROR)
+    {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
 
     /* We may required to dump out the histogram as text file: */
@@ -211,19 +181,23 @@ int main(int argc, char **argv)
 	    printf("%12ld  %3d\n", Histogram[i], i);
     }
     else {
+	int Color, Count;
+	long Scaler;
 	/* Open stdout for the histogram output file: */
-	if ((GifFileOut = EGifOpenFileHandle(1)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if ((GifFileOut = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
 
 	/* Dump out screen descriptor to fit histogram dimensions: */
 	if (EGifPutScreenDesc(GifFileOut,
 	    ImageWidth, ImageHeight, HISTO_BITS_PER_PIXEL, 0,
-	    MakeMapObject(4, HistoColorMap)) == GIF_ERROR)
+	    GifMakeMapObject(4, HistoColorMap)) == GIF_ERROR)
 		QuitGifError(GifFileIn, GifFileOut);
 
 	/* Dump out image descriptor to fit histogram dimensions: */
 	if (EGifPutImageDesc(GifFileOut,
-			     0, 0, ImageWidth, ImageHeight, FALSE, NULL) == GIF_ERROR)
+			     0, 0, ImageWidth, ImageHeight, false, NULL) == GIF_ERROR)
 		QuitGifError(GifFileIn, GifFileOut);
 
 	/* Prepare scan line for histogram file, and find scaler to scale    */
@@ -236,6 +210,7 @@ int main(int argc, char **argv)
 
 	/* Dump out the image itself: */
 	for (Count = ImageHeight, i = 0, Color = 1; i < NumColors; i++) {
+	    int Size;
 	    if ((Size = Histogram[i] / Scaler) > ImageWidth) Size = ImageWidth;
 	    for (j = 0; j < Size; j++)
 		Line[j] = Color;
@@ -253,20 +228,30 @@ int main(int argc, char **argv)
 	    }
 	}
 
-	if (EGifCloseFile(GifFileOut) == GIF_ERROR)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if (EGifCloseFile(GifFileOut, &ErrorCode) == GIF_ERROR)
+	{
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
 
     return 0;
 }
 
 /******************************************************************************
-* Close both input and output file (if open), and exit.			      *
+ Close both input and output file (if open), and exit.
 ******************************************************************************/
 static void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut)
 {
-    PrintGifError();
-    if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
-    if (GifFileOut != NULL) EGifCloseFile(GifFileOut);
+    if (GifFileIn != NULL) {
+	PrintGifError(GifFileIn->Error);
+	EGifCloseFile(GifFileIn, NULL);
+    }
+    if (GifFileOut != NULL) {
+	PrintGifError(GifFileOut->Error);
+	EGifCloseFile(GifFileOut, NULL);
+    }
     exit(EXIT_FAILURE);
 }
+
+/* end */

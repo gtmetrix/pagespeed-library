@@ -1,43 +1,19 @@
 /*****************************************************************************
-*   "Gif-Lib" - Yet another gif library.				     *
-*									     *
-* Written by:  Gershon Elber				Ver 0.1, Jul. 1989   *
-******************************************************************************
-* Program to generate back ground image that can be used to replace constant *
-* background.								     *
-* Options:								     *
-* -q : quiet printing mode.						     *
-* -d direction : set direction image should increase intensity.		     *
-* -l levels : number of color levels.					     *
-* -c r g b : colors of the back ground.					     *
-* -m min : minimin intensity in percent.				     *
-* -M max : maximum intensity in percent.				     *
-* -s width height : size of image to create.				     *
-* -h : on-line help.							     *
-******************************************************************************
-* History:								     *
-* 9 Jul 89 - Version 1.0 by Gershon Elber.				     *
+
+gifbg - generate a test-pattern GIF
+
 *****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef __MSDOS__
-#include <stdlib.h>
-#include <alloc.h>
-#endif /* __MSDOS__ */
-
-#ifndef __MSDOS__
-#include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "gif_lib.h"
 #include "getarg.h"
 
-#define PROGRAM_NAME	"GifBG"
+#define PROGRAM_NAME	"gifbg"
 
 #define DEFAULT_WIDTH	640
 #define DEFAULT_HEIGHT	350
@@ -49,7 +25,7 @@
 #define DEFAULT_MIN_INTENSITY	10			      /* In percent. */
 #define DEFAULT_MAX_INTENSITY	100
 
-#define DEFAULT_NUM_LEVELS	16     /* Number of colors to gen the image. */
+#define DEFAULT_NUM_LEVELS	16     /* Number of colors to gen in image. */
 
 #define DIR_NONE	0	     /* Direction the levels can be changed: */
 #define DIR_TOP		1
@@ -63,30 +39,17 @@
 
 #define DEFAULT_DIR	"T"			   /* TOP (North) direction. */
 
-#ifdef __MSDOS__
-extern unsigned int
-    _stklen = 16384;			     /* Increase default stack size. */
-#endif /* __MSDOS__ */
-
-#ifdef SYSV
-static char *VersionStr =
-        "Gif library module	\t\tGershon Elber\n\
-	(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = "GifBG q%- d%-Dir!s l%-#Lvls!d c%-R|G|B!d!d!d m%-MinI!d M%-MaxI!d s%-W|H!d!d h%-";
-#else
 static char
     *VersionStr =
 	PROGRAM_NAME
-	GIF_LIB_VERSION
+	VERSION_COOKIE
 	"	Gershon Elber,	"
 	__DATE__ ",   " __TIME__ "\n"
 	"(C) Copyright 1989 Gershon Elber.\n";
 static char
     *CtrlStr =
 	PROGRAM_NAME
-	" q%- d%-Dir!s l%-#Lvls!d c%-R|G|B!d!d!d m%-MinI!d M%-MaxI!d s%-W|H!d!d h%-";
-#endif /* SYSV */
+	" v%- d%-Dir!s l%-#Lvls!d c%-R|G|B!d!d!d m%-MinI!d M%-MaxI!d s%-W|H!d!d h%-";
 
 static int
     MaximumIntensity = DEFAULT_MAX_INTENSITY,		      /* In percent. */
@@ -103,34 +66,34 @@ static unsigned int
 static void QuitGifError(GifFileType *GifFile);
 
 /******************************************************************************
-* Interpret the command line and scan the given GIF file.		      *
+ Interpret the command line and scan the given GIF file.
 ******************************************************************************/
 int main(int argc, char **argv)
 {
     unsigned int Ratio;
-    int	i, j, l, LevelHeight, LevelWidth, Error, LogNumLevels, FlipDir,
-	Accumulator, StartX, StepX, Count = 0, DoAllMaximum = FALSE,
-	DirectionFlag = FALSE, LevelsFlag = FALSE, ColorFlag = FALSE,
-	MinFlag = FALSE, MaxFlag = FALSE, SizeFlag = FALSE, HelpFlag = FALSE;
+    int	i, l, LevelWidth, LogNumLevels, ErrorCode, Count = 0;
+    bool Error, FlipDir, DoAllMaximum = false,
+	DirectionFlag = false, LevelsFlag = false, ColorFlag = false,
+	MinFlag = false, MaxFlag = false, SizeFlag = false, HelpFlag = false;
     GifPixelType Color;
     char *DirectionStr = DEFAULT_DIR;
     GifRowType Line;
     ColorMapObject *ColorMap;
     GifFileType *GifFile;
 
-    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifQuietPrint,
+    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifNoisyPrint,
 		&DirectionFlag, &DirectionStr, &LevelsFlag, &NumLevels,
 		&ColorFlag, &RedColor, &GreenColor, &BlueColor,
 		&MinFlag, &MinimumIntensity, &MaxFlag, &MaximumIntensity,
 		&SizeFlag, &ImageWidth, &ImageHeight,
-		&HelpFlag)) != FALSE) {
+		&HelpFlag)) != false) {
 	GAPrintErrMsg(Error);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_FAILURE);
     }
 
     if (HelpFlag) {
-	fprintf(stderr, VersionStr);
+	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_SUCCESS);
     }
@@ -142,8 +105,9 @@ int main(int argc, char **argv)
 
     /* Convert DirectionStr to our local representation: */
     Direction = DIR_NONE;
-    FlipDir = FALSE;
-    for (i = 0; i < (int)strlen(DirectionStr);  i++) /* Make sure its upper case. */
+    FlipDir = false;
+     /* Make sure it's upper case. */
+    for (i = 0; i < (int)strlen(DirectionStr);  i++)
 	if (islower(DirectionStr[i]))
 	    DirectionStr[i] = toupper(DirectionStr[i]);
 
@@ -161,7 +125,7 @@ int main(int argc, char **argv)
 		    case 'L':
 		    case 'W':
 			Direction = DIR_TOP_LEFT;
-			FlipDir = TRUE;
+			FlipDir = true;
 			break;
 		}
 	    break;
@@ -173,7 +137,7 @@ int main(int argc, char **argv)
 	case 'S':
 	    if (strlen(DirectionStr) < 2) {
 		Direction = DIR_BOT;
-		FlipDir = TRUE;
+		FlipDir = true;
 	    }
 	    else
 		switch(DirectionStr[1]) {
@@ -184,14 +148,14 @@ int main(int argc, char **argv)
 		    case 'L':
 		    case 'W':
 			Direction = DIR_BOT_LEFT;
-			FlipDir = TRUE;
+			FlipDir = true;
 			break;
 		}
 	    break;
 	case 'L': /* Left or West */
 	case 'W':
 	    Direction = DIR_LEFT;
-	    FlipDir = TRUE;
+	    FlipDir = true;
 	    break;
     }
     if (Direction == DIR_NONE)
@@ -220,7 +184,7 @@ int main(int argc, char **argv)
     /* If binary mask is requested (special case): */
     if (MinimumIntensity == 100 && MaximumIntensity == 100 && NumLevels == 2) {
 	MinimumIntensity = 0;
-	DoAllMaximum = TRUE;
+	DoAllMaximum = true;
 	Direction = DIR_RIGHT;
     }
 
@@ -234,11 +198,13 @@ int main(int argc, char **argv)
     LogNumLevels = i;
 
     /* Open stdout for the output file: */
-    if ((GifFile = EGifOpenFileHandle(1)) == NULL)
-	QuitGifError(GifFile);
+    if ((GifFile = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     /* Dump out screen description with given size and generated color map:  */
-    if ((ColorMap = MakeMapObject(NumLevels, NULL)) == NULL)
+    if ((ColorMap = GifMakeMapObject(NumLevels, NULL)) == NULL)
 	GIF_EXIT("Failed to allocate memory required, aborted.");
 
     for (i = 1; i <= NumLevels; i++) {
@@ -257,23 +223,25 @@ int main(int argc, char **argv)
 
     /* Dump out the image descriptor: */
     if (EGifPutImageDesc(GifFile,
-	0, 0, ImageWidth, ImageHeight, FALSE, NULL) == GIF_ERROR)
+	0, 0, ImageWidth, ImageHeight, false, NULL) == GIF_ERROR)
 	QuitGifError(GifFile);
 
     GifQprintf("\n%s: Image 1 at (%d, %d) [%dx%d]:     ",
 	       PROGRAM_NAME, GifFile->Image.Left, GifFile->Image.Top,
 	       GifFile->Image.Width, GifFile->Image.Height);
 
-    /* Allocate one scan line twice as big as image is as we are going to    */
+    /* Allocate one scan line twice as big as image is, as we are going to   */
     /* shift along it, while we dump the scan lines:			     */
     if ((Line = (GifRowType) malloc(sizeof(GifPixelType) * ImageWidth * 2)) == NULL)
 	GIF_EXIT("Failed to allocate memory required, aborted.");
 
     if (Direction == DIR_TOP) {
+	int LevelHeight;
 	/* We must evaluate the line each time level is changing: */
 	LevelHeight = ImageHeight / NumLevels;
 	for (Color = NumLevels, i = l = 0; i < ImageHeight; i++) {
 	    if (i == l) {
+		int j;
 		/* Time to update the line to next color level: */
 		if (Color != 0) Color--;
 		for (j = 0; j < ImageWidth; j++)
@@ -305,12 +273,14 @@ int main(int argc, char **argv)
 	}
 
 	for (i = 0; i < ImageHeight; i++) {
+	    /* coverity[uninit_use_in_call] */
 	    if (EGifPutLine(GifFile, Line, ImageWidth) == GIF_ERROR)
 		QuitGifError(GifFile);
 	    GifQprintf("\b\b\b\b%-4d", Count++);
 	}
     }
     else {
+	int Accumulator, StartX, StepX;
 	/* We are in one of the TOP_RIGHT, BOT_RIGHT cases: we will          */
 	/* initialize the Line with its double ImageWidth length from the    */
 	/* minimum intensity to the maximum intensity and shift along it     */
@@ -354,18 +324,25 @@ int main(int argc, char **argv)
 	}
     }
 
-    if (EGifCloseFile(GifFile) == GIF_ERROR)
-	QuitGifError(GifFile);
+    if (EGifCloseFile(GifFile, &ErrorCode) == GIF_ERROR)
+    {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     return 0;
 }
 
 /******************************************************************************
-* Close output file (if open), and exit.				      *
+ Close output file (if open), and exit.
 ******************************************************************************/
 static void QuitGifError(GifFileType *GifFile)
 {
-    PrintGifError();
-    if (GifFile != NULL) EGifCloseFile(GifFile);
+    if (GifFile != NULL) {
+	PrintGifError(GifFile->Error);
+	EGifCloseFile(GifFile, NULL);
+    }
     exit(EXIT_FAILURE);
 }
+
+/* end */

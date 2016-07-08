@@ -1,85 +1,52 @@
 /*****************************************************************************
-*   "Gif-Lib" - Yet another gif library.				     *
-*									     *
-* Written by:  Gershon Elber				Ver 0.1, Jul. 1989   *
-******************************************************************************
-* Program to attempt and fix broken GIF images. Currently fix the following: *
-* 1. EOF terminates before end of image size (adds black in the end).        *
-* Options:								     *
-* -q : quiet printing mode.						     *
-* -h : on-line help							     *
-******************************************************************************
-* History:								     *
-* 5 May 91 - Version 1.0 by Gershon Elber.				     *
+
+giffix - attempt to fix a truncated GIF
+
 *****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef __MSDOS__
 #include <stdlib.h>
-#include <alloc.h>
-#endif /* __MSDOS__ */
-
-#ifndef __MSDOS__
-#include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
+
 #include "gif_lib.h"
 #include "getarg.h"
 
-#define PROGRAM_NAME	"GifFix"
+#define PROGRAM_NAME	"giffix"
 
-#ifdef __MSDOS__
-extern unsigned int
-    _stklen = 16384;			     /* Increase default stack size. */
-#endif /* __MSDOS__ */
-
-#ifdef SYSV
-static char *VersionStr =
-        "Gif toolkit module,\t\tGershon Elber\n\
-	(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = "GifFix q%- h%- GifFile!*s";
-#else
 static char
     *VersionStr =
 	PROGRAM_NAME
-	GIF_LIB_VERSION
+	VERSION_COOKIE
 	"	Gershon Elber,	"
 	__DATE__ ",   " __TIME__ "\n"
 	"(C) Copyright 1989 Gershon Elber.\n";
 static char
     *CtrlStr =
 	PROGRAM_NAME
-	" q%- h%- GifFile!*s";
-#endif /* SYSV */
-
-/* Make some variables global, so we could access them faster: */
-static int
-    ImageNum = 0;
+	" v%- h%- GifFile!*s";
 
 static void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut);
 
 /******************************************************************************
-* Interpret the command line and scan the given GIF file.		      *
+ Interpret the command line and scan the given GIF file.
 ******************************************************************************/
 int main(int argc, char **argv)
 {
-    int	i, j, Error, NumFiles, ExtCode, Row, Col, Width, Height,
-	DarkestColor = 0, ColorIntens = 10000, HelpFlag = FALSE;
+    int	i, j, NumFiles, ExtCode, Row, Col, Width, Height, ErrorCode,
+	DarkestColor = 0, ColorIntens = 10000;
+    bool Error, HelpFlag = false;
     GifRecordType RecordType;
     GifByteType *Extension;
     char **FileName = NULL;
     GifRowType LineBuffer;
     ColorMapObject *ColorMap;
     GifFileType *GifFileIn = NULL, *GifFileOut = NULL;
+    int ImageNum = 0;
 
-    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifQuietPrint, &HelpFlag,
-		&NumFiles, &FileName)) != FALSE ||
+    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifNoisyPrint, &HelpFlag,
+		&NumFiles, &FileName)) != false ||
 		(NumFiles > 1 && !HelpFlag)) {
 	if (Error)
 	    GAPrintErrMsg(Error);
@@ -90,26 +57,34 @@ int main(int argc, char **argv)
     }
 
     if (HelpFlag) {
-	fprintf(stderr, VersionStr);
+	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_SUCCESS);
     }
 
     if (NumFiles == 1) {
-	if ((GifFileIn = DGifOpenFileName(*FileName)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if ((GifFileIn = DGifOpenFileName(*FileName, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
-    else {
-	/* Use the stdin instead: */
-	if ((GifFileIn = DGifOpenFileHandle(0)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+    else
+    {
+	/* Use stdin instead: */
+	if ((GifFileIn = DGifOpenFileHandle(0, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
 
     /* Open stdout for the output file: */
-    if ((GifFileOut = EGifOpenFileHandle(1)) == NULL)
-	QuitGifError(GifFileIn, GifFileOut);
+    if ((GifFileOut = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     /* Dump out exactly same screen information: */
+    /* coverity[var_deref_op] */
     if (EGifPutScreenDesc(GifFileOut,
 	GifFileIn->SWidth, GifFileIn->SHeight,
 	GifFileIn->SColorResolution, GifFileIn->SBackGroundColor,
@@ -129,7 +104,7 @@ int main(int argc, char **argv)
 		if (DGifGetImageDesc(GifFileIn) == GIF_ERROR)
 		    QuitGifError(GifFileIn, GifFileOut);
 		if (GifFileIn->Image.Interlace)
-		    GIF_EXIT("Cannt fix interlaced images.");
+		    GIF_EXIT("Cannot fix interlaced images.");
 
 		Row = GifFileIn->Image.Top; /* Image Position relative to Screen. */
 		Col = GifFileIn->Image.Left;
@@ -137,10 +112,12 @@ int main(int argc, char **argv)
 		Height = GifFileIn->Image.Height;
 		GifQprintf("\n%s: Image %d at (%d, %d) [%dx%d]:     ",
 		    PROGRAM_NAME, ++ImageNum, Col, Row, Width, Height);
+		if (Width > GifFileIn->SWidth)
+		    GIF_EXIT("Image is wider than total");
 
 		/* Put the image descriptor to out file: */
 		if (EGifPutImageDesc(GifFileOut, Col, Row, Width, Height,
-		    FALSE, GifFileIn->Image.ColorMap) == GIF_ERROR)
+		    false, GifFileIn->Image.ColorMap) == GIF_ERROR)
 		    QuitGifError(GifFileIn, GifFileOut);
 
 		/* Find the darkest color in color map to use as a filler. */
@@ -166,8 +143,8 @@ int main(int argc, char **argv)
 		}
 
 		if (i < Height) {
-		    fprintf(stderr, "\nFollowing error occured (and ignored):");
-		    PrintGifError();
+		    fprintf(stderr,"\nFollowing error occurred (and ignored):");
+		    PrintGifError(GifFileIn->Error);
 
 		    /* Fill in with the darkest color in color map. */
 		    for (j = 0; j < Width; j++)
@@ -178,43 +155,62 @@ int main(int argc, char **argv)
 		}
 		break;
 	    case EXTENSION_RECORD_TYPE:
-		/* Skip any extension blocks in file: */
+		/* pass through extension records */
 		if (DGifGetExtension(GifFileIn, &ExtCode, &Extension) == GIF_ERROR)
 		    QuitGifError(GifFileIn, GifFileOut);
-		if (EGifPutExtension(GifFileOut, ExtCode, Extension[0],
-							Extension) == GIF_ERROR)
+		if (EGifPutExtensionLeader(GifFileOut, ExtCode) == GIF_ERROR)
 		    QuitGifError(GifFileIn, GifFileOut);
-
-		/* No support to more than one extension blocks, so discard: */
-		while (Extension != NULL) {
-		    if (DGifGetExtensionNext(GifFileIn, &Extension) == GIF_ERROR)
+		if (Extension != NULL)
+		    if (EGifPutExtensionBlock(GifFileOut,
+					  Extension[0],
+					  Extension + 1) == GIF_ERROR)
 			QuitGifError(GifFileIn, GifFileOut);
+		while (Extension != NULL) {
+		    if (DGifGetExtensionNext(GifFileIn, &Extension)==GIF_ERROR)
+			QuitGifError(GifFileIn, GifFileOut);
+		    if (Extension != NULL)
+			if (EGifPutExtensionBlock(GifFileOut, 
+						  Extension[0],
+						  Extension + 1) == GIF_ERROR)
+			    QuitGifError(GifFileIn, GifFileOut);
 		}
+		if (EGifPutExtensionTrailer(GifFileOut) == GIF_ERROR)
+		    QuitGifError(GifFileIn, GifFileOut);
 		break;
 	    case TERMINATE_RECORD_TYPE:
 		break;
-	    default:		    /* Should be traps by DGifGetRecordType. */
+	    default:		    /* Should be trapped by DGifGetRecordType. */
 		break;
 	}
     }
     while (RecordType != TERMINATE_RECORD_TYPE);
 
-    if (DGifCloseFile(GifFileIn) == GIF_ERROR)
-	QuitGifError(GifFileIn, GifFileOut);
-    if (EGifCloseFile(GifFileOut) == GIF_ERROR)
-	QuitGifError(GifFileIn, GifFileOut);
-
+    if (DGifCloseFile(GifFileIn, &ErrorCode) == GIF_ERROR) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
+    if (EGifCloseFile(GifFileOut, &ErrorCode) == GIF_ERROR) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
     return 0;
 }
 
 /******************************************************************************
-* Close both input and output file (if open), and exit.			      *
+ Close both input and output file (if open), and exit.
 ******************************************************************************/
 static void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut)
 {
     fprintf(stderr, "\nFollowing unrecoverable error occured:");
-    PrintGifError();
-    if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
-    if (GifFileOut != NULL) EGifCloseFile(GifFileOut);
+    if (GifFileIn != NULL) {
+	PrintGifError(GifFileIn->Error);
+	EGifCloseFile(GifFileIn, NULL);
+    }
+    if (GifFileOut != NULL) {
+	PrintGifError(GifFileOut->Error);
+	EGifCloseFile(GifFileOut, NULL);
+    }
     exit(EXIT_FAILURE);
 }
+
+/* end */

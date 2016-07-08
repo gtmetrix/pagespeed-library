@@ -26,6 +26,7 @@
       'sources': [
         'lib/gifalloc.c',
         'lib/gif_err.c',
+        'lib/openbsd-reallocarray.c',
       ]
     },
     {
@@ -47,43 +48,6 @@
         # same assumption made in basictypes.h.
         'UINT32=unsigned int',
         '_GBA_NO_FILEIO',
-      ],
-      'direct_dependent_settings': {
-        'include_dirs': [
-          '<(giflib_src_root)',
-          '<(giflib_gen_arch_root)/include',
-        ],
-      },
-      'xcode_settings': {
-        'WARNING_CFLAGS': [
-          '-Wno-pointer-sign',
-        ],
-      },
-      'cflags': [
-        '-Wno-pointer-sign',
-      ],
-    },
-    {
-      'target_name': 'egiflib',
-      'type': '<(library)',
-      'sources': [
-        'lib/egif_lib.c',
-        'lib/gif_hash.c'
-      ],
-      'dependencies': [
-        'giflib_core',
-      ],
-      'include_dirs': [
-        '<(giflib_src_root)',
-        '<(giflib_gen_arch_root)/include',
-        '<(giflib_gen_arch_root)/include/private',
-      ],
-      'defines': [
-        # We assume that int is 32bit on all platforms. This is the
-        # same assumption made in basictypes.h.
-        'UINT32=unsigned int',
-        '_GBA_NO_FILEIO',
-        'HAVE_FCNTL_H',
       ],
       'direct_dependent_settings': {
         'include_dirs': [

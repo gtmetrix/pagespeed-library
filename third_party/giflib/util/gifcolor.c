@@ -1,64 +1,32 @@
 /*****************************************************************************
-*   "Gif-Lib" - Yet another gif library.				     *
-*									     *
-* Written by:  Gershon Elber				Ver 0.1, Jul. 1989   *
-******************************************************************************
-* Program to generate a test pattern from a given color map		     *
-******************************************************************************
-* Options:								     *
-* -q : quiet printing mode.						     *
-* -b : set background color.
-* -h : on-line help.							     *
-******************************************************************************
-* History:								     *
-* 21 Sep 92 - Version 1.0 by Eric S. Raymond.				     *
+
+gifcolor - generate color test-pattern GIFs
+
 *****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef __MSDOS__
 #include <stdlib.h>
-#include <alloc.h>
-#endif /* __MSDOS__ */
-
-#ifndef __MSDOS__
-#include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
+
 #include "gif_lib.h"
 #include "getarg.h"
 
-#define PROGRAM_NAME	"GifColor"
+#define PROGRAM_NAME	"gifcolor"
 
 #define LINE_LEN		40
 #define IMAGEWIDTH		LINE_LEN*GIF_FONT_WIDTH
 
-#ifdef __MSDOS__
-extern unsigned int
-    _stklen = 16384;			     /* Increase default stack size. */
-#endif /* __MSDOS__ */
-
-#ifdef SYSV
-static char *VersionStr =
-        "Gif library module	\t\tGershon Elber\n\
-	(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = "GifColor q%- b%-Background!d h%-";
-#else
 static char
     *VersionStr =
 	PROGRAM_NAME
-	GIF_LIB_VERSION
+	VERSION_COOKIE
 	"	Gershon Elber,	"
 	__DATE__ ",   " __TIME__ "\n"
 	"(C) Copyright 1989 Gershon Elber.\n";
 static char
-    *CtrlStr = PROGRAM_NAME " q%- b%-Background!d h%-";
-#endif /* SYSV */
+    *CtrlStr = PROGRAM_NAME " v%- b%-Background!d h%-";
 
 static int BackGround = 0;
 static void QuitGifError(GifFileType *GifFile);
@@ -66,12 +34,12 @@ static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
 					int BufferWidth, int ForeGroundIndex);
 
 /******************************************************************************
-* Interpret the command line and generate the given GIF file.		      *
+ Interpret the command line and generate the given GIF file.
 ******************************************************************************/
 int main(int argc, char **argv)
 {
-    int	i, j, l, Error, GifQuietPrint, ColorMapSize,
-	BackGroundFlag = FALSE, HelpFlag = FALSE;
+    int	i, j, l, GifNoisyPrint, ColorMapSize, ErrorCode;
+    bool Error, BackGroundFlag = false, HelpFlag = false;
     char Line[LINE_LEN];
     GifRowType RasterBuffer[GIF_FONT_HEIGHT];
     ColorMapObject *ColorMap;
@@ -80,16 +48,16 @@ int main(int argc, char **argv)
     int red, green, blue;
 
     if ((Error = GAGetArgs(argc, argv, CtrlStr,
-			   &GifQuietPrint,
+			   &GifNoisyPrint,
 			   &BackGroundFlag, &BackGround,
-			   &HelpFlag)) != FALSE) {
+			   &HelpFlag)) != false) {
 	GAPrintErrMsg(Error);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_FAILURE);
     }
 
     if (HelpFlag) {
-	fprintf(stderr, VersionStr);
+	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_SUCCESS);
     }
@@ -103,8 +71,10 @@ int main(int argc, char **argv)
     }
 
     /* Open stdout for the output file: */
-    if ((GifFile = EGifOpenFileHandle(1)) == NULL)
-	QuitGifError(GifFile);
+    if ((GifFile = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     /* Read the color map in ColorFile into this color map: */
     ColorMapSize = 0;
@@ -117,18 +87,18 @@ int main(int argc, char **argv)
 	    ColorMapSize++;
 	}
 
-    if ((ColorMap = MakeMapObject(1 << BitSize(ColorMapSize), ScratchMap)) == NULL)
+    if ((ColorMap = GifMakeMapObject(1 << GifBitSize(ColorMapSize), ScratchMap)) == NULL)
 	GIF_EXIT("Failed to allocate memory required, aborted.");
 
     if (EGifPutScreenDesc(GifFile,
 			  IMAGEWIDTH, ColorMapSize * GIF_FONT_HEIGHT,
-			  BitSize(ColorMapSize),
+			  GifBitSize(ColorMapSize),
 			  BackGround, ColorMap) == GIF_ERROR)
 	QuitGifError(GifFile);
 
     /* Dump out the image descriptor: */
     if (EGifPutImageDesc(GifFile,
-	0, 0, IMAGEWIDTH, ColorMapSize * GIF_FONT_HEIGHT, FALSE, NULL) == GIF_ERROR)
+	0, 0, IMAGEWIDTH, ColorMapSize * GIF_FONT_HEIGHT, false, NULL) == GIF_ERROR)
 	QuitGifError(GifFile);
 
     GifQprintf("\n%s: Image 1 at (%d, %d) [%dx%d]:     ",
@@ -136,10 +106,11 @@ int main(int argc, char **argv)
 		    GifFile->Image.Width, GifFile->Image.Height);
 
     for (i = l = 0; i < ColorMap->ColorCount; i++) {
-	(void)sprintf(Line, "Color %-3d: [%-3d, %-3d, %-3d] ", i,
-		      ColorMap->Colors[i].Red,
-		      ColorMap->Colors[i].Green,
-		      ColorMap->Colors[i].Blue);
+	(void)snprintf(Line, sizeof(Line),
+		       "Color %-3d: [%-3d, %-3d, %-3d] ", i,
+		       ColorMap->Colors[i].Red,
+		       ColorMap->Colors[i].Green,
+		       ColorMap->Colors[i].Blue);
 	GenRasterTextLine(RasterBuffer, Line, IMAGEWIDTH, i);
 	for (j = 0; j < GIF_FONT_HEIGHT; j++) {
 	    if (EGifPutLine(GifFile, RasterBuffer[j], IMAGEWIDTH) == GIF_ERROR)
@@ -148,14 +119,17 @@ int main(int argc, char **argv)
 	}
     }
 
-    if (EGifCloseFile(GifFile) == GIF_ERROR)
-	QuitGifError(GifFile);
+    if (EGifCloseFile(GifFile, &ErrorCode) == GIF_ERROR)
+    {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
 
     return 0;
 }
 
 /******************************************************************************
-* Close output file (if open), and exit.				      *
+ Close output file (if open), and exit.
 ******************************************************************************/
 static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
 					int BufferWidth, int ForeGroundIndex)
@@ -170,7 +144,7 @@ static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
     for (i = CharPosX = 0; i < Len; i++, CharPosX += GIF_FONT_WIDTH) {
 	c = TextLine[i];
 	for (j = 0; j < GIF_FONT_HEIGHT; j++) {
-	    Byte = AsciiTable[(unsigned short)c][j];
+	    Byte = GifAsciiTable8x8[(unsigned short)c][j];
 	    for (k = 0, Mask = 128; k < GIF_FONT_WIDTH; k++, Mask >>= 1)
 		if (Byte & Mask)
 		    RasterBuffer[j][CharPosX + k] = ForeGroundIndex;
@@ -179,11 +153,13 @@ static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
 }
 
 /******************************************************************************
-* Close output file (if open), and exit.				      *
+ Close output file (if open), and exit.
 ******************************************************************************/
 static void QuitGifError(GifFileType *GifFile)
 {
-    PrintGifError();
-    if (GifFile != NULL) EGifCloseFile(GifFile);
+    if (GifFile != NULL) {
+	PrintGifError(GifFile->Error);
+	EGifCloseFile(GifFile, NULL);
+    }
     exit(EXIT_FAILURE);
 }

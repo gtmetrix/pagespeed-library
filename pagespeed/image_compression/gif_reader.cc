@@ -510,7 +510,11 @@ bool GifReader::ReadPng(const std::string& body,
   bool result = ReadGifToPng(gif_file, png_ptr, info_ptr,
                              expand_colormap, strip_alpha,
                              require_opaque);
+#if GIFLIB_MAJOR < 5
   if (DGifCloseFile(gif_file) == GIF_ERROR) {
+#else
+  if (DGifCloseFile(gif_file, NULL) == GIF_ERROR) {
+#endif
     DLOG(INFO) << "Failed to close GIF.";
   }
   return result;

@@ -1,78 +1,39 @@
 /*****************************************************************************
-*   "Gif-Lib" - Yet another gif library.				     *
-*									     *
-* Written by:  Gershon Elber				Ver 0.1, Jul. 1989   *
-******************************************************************************
-* Program to modify GIF file color map(s). Images are not modified at all.   *
-* Options:								     *
-* -q : quiet printing mode.						     *
-* -s : save screen color map (unless -i - see below), to stdout.	     *
-* -l colormap.file : substitute given colormap.file colormap into screen     *
-*    colormap (unless -i - see below).					     *
-* -g correction : apply gamma correction to the screen colormap (unless -i - *
-*    see below).							     *
-* -i n : select image number n color map instead of screen map for above     *
-*    operations (n = 1 for first image).				     *
-* -h : on-line help.							     *
-*   All color maps are ascii text files, with one line per color of the      *
-* form: index, Red color, Green color, Blue color - all in the range 0..255. *
-*   All color maps should be in the exact same length.			     *
-******************************************************************************
-* History:								     *
-* 17 Jul 89 - Version 1.0 by Gershon Elber.				     *
+
+gifclrmap - extract colormaps from GIF images
+
 *****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef __MSDOS__
-#include <stdlib.h>
-#include <alloc.h>
-#endif /* __MSDOS__ */
-
-#ifndef __MSDOS__
-#include <stdlib.h>
-#endif
 #include <math.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <assert.h>
+
 #include "gif_lib.h"
 #include "getarg.h"
 
-#define PROGRAM_NAME	"GifClrMp"
+#define PROGRAM_NAME	"gifclrmp"
 
-#ifdef __MSDOS__
-extern unsigned int
-    _stklen = 16384;			     /* Increase default stack size. */
-#endif /* __MSDOS__ */
-
-#ifdef SYSV
-static char *VersionStr =
-        "Gif toolkit module,\t\tGershon Elber\n\
-	(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = "GifClrMp q%- s%- t%-TranslationFile!s l%-ColorMapFile!s g%-Gamma!F i%-Image#!d h%- GifFile!*s";
-#else
 static char
     *VersionStr =
 	PROGRAM_NAME
-	GIF_LIB_VERSION
+	VERSION_COOKIE
 	"	Gershon Elber,	"
 	__DATE__ ",   " __TIME__ "\n"
 	"(C) Copyright 1989 Gershon Elber.\n";
 static char
     *CtrlStr =
 	PROGRAM_NAME
-	" q%- s%- t%-TranslationFile!s l%-ColorMapFile!s g%-Gamma!F i%-Image#!d h%- GifFile!*s";
-#endif /* SYSV */
+	" v%- s%- t%-TranslationFile!s l%-ColorMapFile!s g%-Gamma!F i%-Image#!d h%- GifFile!*s";
 
-static int
-    SaveFlag = FALSE,
-    TranslateFlag = FALSE,
-    LoadFlag = FALSE,
-    GammaFlag = FALSE;
+static bool
+    SaveFlag = false,
+    TranslateFlag = false,
+    LoadFlag = false,
+    GammaFlag = false;
 static
     double Gamma = 1.0;
 static
@@ -85,22 +46,23 @@ static ColorMapObject *ModifyColorMap(ColorMapObject *ColorMap);
 static void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut);
 
 /******************************************************************************
-* Interpret the command line and scan the given GIF file.		      *
+ Interpret the command line and scan the given GIF file.
 ******************************************************************************/
 int main(int argc, char **argv)
 {
-    int	Error, NumFiles, ExtCode, CodeSize, ImageNum = 0,
-	ImageNFlag = FALSE, ImageN, HelpFlag = FALSE, HasGIFOutput;
+    int	NumFiles, ExtCode, CodeSize, ImageNum = 0, 
+	ImageN, HasGIFOutput, ErrorCode;
+    bool Error, ImageNFlag = false, HelpFlag = false;
     GifRecordType RecordType;
     GifByteType *Extension, *CodeBlock;
     char **FileName = NULL, *ColorFileName, *TranslateFileName;
     GifFileType *GifFileIn = NULL, *GifFileOut = NULL;
 
-    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifQuietPrint, &SaveFlag, 
+    if ((Error = GAGetArgs(argc, argv, CtrlStr, &GifNoisyPrint, &SaveFlag, 
 		&TranslateFlag, &TranslateFileName,
 		&LoadFlag, &ColorFileName,
 		&GammaFlag, &Gamma, &ImageNFlag, &ImageN,
-		&HelpFlag, &NumFiles, &FileName)) != FALSE ||
+		&HelpFlag, &NumFiles, &FileName)) != false ||
 		(NumFiles > 1 && !HelpFlag)) {
 	if (Error)
 	    GAPrintErrMsg(Error);
@@ -111,7 +73,7 @@ int main(int argc, char **argv)
     }
 
     if (HelpFlag) {
-	fprintf(stderr, VersionStr);
+	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
 	GAPrintHowTo(CtrlStr);
 	exit(EXIT_SUCCESS);
     }
@@ -119,14 +81,22 @@ int main(int argc, char **argv)
     if (SaveFlag + LoadFlag + GammaFlag + TranslateFlag > 1)
 	GIF_EXIT("Can not handle more than one of -s -l, -t, or -g at the same time.");
 
+    /* Default action is to dump colormaps */
+    if (!SaveFlag && !LoadFlag && !GammaFlag && !TranslateFlag)
+	SaveFlag = true;
+
     if (NumFiles == 1) {
-	if ((GifFileIn = DGifOpenFileName(*FileName)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if ((GifFileIn = DGifOpenFileName(*FileName, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
     else {
 	/* Use stdin instead: */
-	if ((GifFileIn = DGifOpenFileHandle(0)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if ((GifFileIn = DGifOpenFileHandle(0, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
 
     if (SaveFlag) {
@@ -149,16 +119,20 @@ int main(int argc, char **argv)
 
     if ((HasGIFOutput = (LoadFlag || TranslateFlag || GammaFlag)) != 0) {
 	/* Open stdout for GIF output file: */
-	if ((GifFileOut = EGifOpenFileHandle(1)) == NULL)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if ((GifFileOut = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
     }
 
     if (!ImageNFlag) {
-	/* We are suppose to modify the screen color map, so do it: */
+	/* We are supposed to modify the screen color map, so do it: */
+	if (!GifFileIn->SColorMap)
+	    GIF_EXIT("No colormap to modify");
 	GifFileIn->SColorMap = ModifyColorMap(GifFileIn->SColorMap);
 	if (!HasGIFOutput) {
 	    /* We can quit here, as we have the color map: */
-	    if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
+	    DGifCloseFile(GifFileIn, NULL);
 	    fclose(ColorFile);
 	    exit(EXIT_SUCCESS);
 	}
@@ -185,7 +159,7 @@ int main(int argc, char **argv)
 		    GifFileIn->SColorMap =ModifyColorMap(GifFileIn->SColorMap);
 		    if (!HasGIFOutput) {
 			/* We can quit here, as we have the color map: */
-			if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
+			DGifCloseFile(GifFileIn, NULL);
 			fclose(ColorFile);
 			exit(EXIT_SUCCESS);
 		    }
@@ -244,44 +218,57 @@ int main(int argc, char **argv)
 		}
 		break;
 	    case EXTENSION_RECORD_TYPE:
-		/* Skip any extension blocks in file: */
+		assert(GifFileOut != NULL);	/* might pacify Coverity */
+		/* pass through extension records */
 		if (DGifGetExtension(GifFileIn, &ExtCode, &Extension) == GIF_ERROR)
 		    QuitGifError(GifFileIn, GifFileOut);
-		if (HasGIFOutput)
-		    if (EGifPutExtension(GifFileOut, ExtCode, Extension[0],
-							Extension) == GIF_ERROR)
-			QuitGifError(GifFileIn, GifFileOut);
-
-		/* No support to more than one extension blocks, so discard: */
+		if (EGifPutExtensionLeader(GifFileOut, ExtCode) == GIF_ERROR)
+		    QuitGifError(GifFileIn, GifFileOut);
+		if (EGifPutExtensionBlock(GifFileOut, 
+					  Extension[0],
+					  Extension + 1) == GIF_ERROR)
+		    QuitGifError(GifFileIn, GifFileOut);
 		while (Extension != NULL) {
-		    if (DGifGetExtensionNext(GifFileIn, &Extension) == GIF_ERROR)
+		    if (DGifGetExtensionNext(GifFileIn, &Extension)==GIF_ERROR)
 			QuitGifError(GifFileIn, GifFileOut);
+		    if (Extension != NULL)
+			if (EGifPutExtensionBlock(GifFileOut, 
+						  Extension[0],
+						  Extension + 1) == GIF_ERROR)
+			    QuitGifError(GifFileIn, GifFileOut);
 		}
+		if (EGifPutExtensionTrailer(GifFileOut) == GIF_ERROR)
+		    QuitGifError(GifFileIn, GifFileOut);
 		break;
 	    case TERMINATE_RECORD_TYPE:
 		break;
-	    default:		    /* Should be traps by DGifGetRecordType. */
+	    default:		    /* Should be trapped by DGifGetRecordType. */
 		break;
 	}
     }
     while (RecordType != TERMINATE_RECORD_TYPE);
 
-    if (DGifCloseFile(GifFileIn) == GIF_ERROR)
-	QuitGifError(GifFileIn, GifFileOut);
+    if (DGifCloseFile(GifFileIn, &ErrorCode) == GIF_ERROR)
+    {
+	PrintGifError(ErrorCode);
+	exit(EXIT_FAILURE);
+    }
     if (HasGIFOutput)
-	if (EGifCloseFile(GifFileOut) == GIF_ERROR)
-	    QuitGifError(GifFileIn, GifFileOut);
+	if (EGifCloseFile(GifFileOut, &ErrorCode) == GIF_ERROR)
+	{
+	    PrintGifError(ErrorCode);
+	    exit(EXIT_FAILURE);
+	}
 
     return 0;
 }
 
 /******************************************************************************
-* Modify the given colormap according to global variables setting.	      *
+ Modify the given colormap according to global variables setting.
 ******************************************************************************/
 static ColorMapObject *ModifyColorMap(ColorMapObject *ColorMap)
 {
-    int i, Dummy, Red, Green, Blue, Max = 0;
-    double Gamma1;
+    int i, Dummy, Red, Green, Blue;
 
     if (SaveFlag) {
 	/* Save this color map to ColorFile: */
@@ -297,16 +284,17 @@ static ColorMapObject *ModifyColorMap(ColorMapObject *ColorMap)
 	for (i = 0; i < ColorMap->ColorCount; i++) {
 	    if (feof(ColorFile))
 		GIF_EXIT("Color file to load color map from, too small.");
-	    fscanf(ColorFile, "%3d %3d %3d %3d\n", &Dummy, &Red, &Green, &Blue);
-	    ColorMap->Colors[i].Red = Red;
-	    ColorMap->Colors[i].Green = Green;
-	    ColorMap->Colors[i].Blue = Blue;
+	    if (fscanf(ColorFile, "%3d %3d %3d %3d\n", &Dummy, &Red, &Green, &Blue) == 4) {
+		ColorMap->Colors[i].Red = Red;
+		ColorMap->Colors[i].Green = Green;
+		ColorMap->Colors[i].Blue = Blue;
+	    }
 	}
 	return(ColorMap);
     }
     else if (GammaFlag) {
 	/* Apply gamma correction to this color map: */
-	Gamma1 = 1.0 / Gamma;
+	double Gamma1 = 1.0 / Gamma;
 	for (i = 0; i < ColorMap->ColorCount; i++) {
 	    ColorMap->Colors[i].Red =
 		((int) (255 * pow(ColorMap->Colors[i].Red / 255.0, Gamma1)));
@@ -319,19 +307,21 @@ static ColorMapObject *ModifyColorMap(ColorMapObject *ColorMap)
     }
     else if (TranslateFlag) {
 	ColorMapObject *NewMap;
+	int Max = 0;
 
 	/* Read the translation table in TranslateFile: */
 	for (i = 0; i < ColorMap->ColorCount; i++) {
 	    int tmp;
 	    if (feof(TranslateFile))
 		GIF_EXIT("Color file to load color map from, too small.");
-	    fscanf(TranslateFile, "%3d %3d\n", &Dummy, &tmp);
-	    Translation[i] = tmp;
-	    if (Translation[i] > Max)
-		Max = Translation[i];
+	    if (fscanf(TranslateFile, "%3d %3d\n", &Dummy, &tmp) == 2) {
+		Translation[i] = tmp & 0xff;
+		if (Translation[i] > Max)
+		    Max = Translation[i];
+	    }
 	}
 
-	if ((NewMap = MakeMapObject(1 << BitSize(Max+1), NULL)) == NULL)
+	if ((NewMap = GifMakeMapObject(1 << GifBitSize(Max+1), NULL)) == NULL)
 	    GIF_EXIT("Out of memory while allocating color map!");
 
 	/* Apply the translation; we'll do it to the pixels, too */
@@ -349,13 +339,19 @@ static ColorMapObject *ModifyColorMap(ColorMapObject *ColorMap)
 }
 
 /******************************************************************************
-* Close both input and output file (if open), and exit.			      *
+ Close both input and output file (if open), and exit.
 ******************************************************************************/
 static void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut)
 {
-    PrintGifError();
-    if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
-    if (GifFileOut != NULL) EGifCloseFile(GifFileOut);
+    if (GifFileIn != NULL) {
+	PrintGifError(GifFileIn->Error);
+	EGifCloseFile(GifFileIn, NULL);
+    }
+    if (GifFileOut != NULL) {
+	PrintGifError(GifFileOut->Error);
+	EGifCloseFile(GifFileOut, NULL);
+    }
     exit(EXIT_FAILURE);
 }
 
+/* end */
