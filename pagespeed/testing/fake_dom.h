@@ -106,6 +106,7 @@ class FakeDomDocument : public pagespeed::DomDocument {
 
   virtual std::string GetDocumentUrl() const;
   virtual std::string GetBaseUrl() const;
+  virtual bool IsResponsive() const;
   virtual void Traverse(pagespeed::DomElementVisitor* visitor) const;
   virtual Status GetWidth(int* out_width) const;
   virtual Status GetHeight(int* out_height) const;

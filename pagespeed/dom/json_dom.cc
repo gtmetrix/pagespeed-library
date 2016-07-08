@@ -54,7 +54,6 @@ void DemandIntegerList(const base::DictionaryValue& dict,
   }
 }
 
-
 class JsonDocument : public pagespeed::DomDocument {
  public:
   explicit JsonDocument(const base::DictionaryValue* json) { json_.reset(json); }
@@ -63,6 +62,7 @@ class JsonDocument : public pagespeed::DomDocument {
   // DomDocument interface:
   virtual std::string GetDocumentUrl() const;
   virtual std::string GetBaseUrl() const;
+  virtual bool IsResponsive() const;
   virtual void Traverse(pagespeed::DomElementVisitor* visitor) const;
 
   bool GetElement(int index, const base::DictionaryValue** element) const;
@@ -103,6 +103,14 @@ std::string JsonDocument::GetDocumentUrl() const {
 
 std::string JsonDocument::GetBaseUrl() const {
   return DemandString(*json_, "baseUrl");
+}
+
+bool JsonDocument::IsResponsive() const {
+  bool isResponsive = false;
+  if (!json_->GetBoolean("isResponsive", &isResponsive)) {
+    return false;
+  }
+  return isResponsive;
 }
 
 void JsonDocument::Traverse(pagespeed::DomElementVisitor* visitor) const {

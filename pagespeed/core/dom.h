@@ -79,6 +79,10 @@ class DomDocument {
   // be changed with a <base> tag.
   virtual std::string GetBaseUrl() const = 0;
 
+  // Return a boolean based on whether any of the document's stylesheets
+  // contain media queries.
+  virtual bool IsResponsive() const = 0;
+
   // Visit the elements within this document in pre-order (that is, always
   // visit a parent before visiting its children).
   virtual void Traverse(DomElementVisitor* visitor) const = 0;

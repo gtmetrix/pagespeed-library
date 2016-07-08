@@ -48,7 +48,7 @@ class ImageData {
 
   const std::string& url() const { return url_; }
 
-  double GetCompressionFactor() const;
+  double GetCompressionFactor(bool is_responsive) const;
 
   bool IsScalable() const;
 
@@ -71,14 +71,18 @@ class ImageData {
   DISALLOW_COPY_AND_ASSIGN(ImageData);
 };
 
-double ImageData::GetCompressionFactor() const {
+double ImageData::GetCompressionFactor(bool is_responsive = false) const {
   double factor = 1.0;
   if (IsScalable()) {
-    if (client_width_ < actual_width_) {
+    // Tolerate downscaled images on pages that
+    // contain @media queries
+    int max_scale = is_responsive ? 2 : 1;
+
+    if (client_width_ < actual_width_ / max_scale) {
       factor *= (static_cast<double>(client_width_) /
                  static_cast<double>(actual_width_));
     }
-    if (client_height_ < actual_height_) {
+    if (client_height_ < actual_height_ / max_scale) {
       factor *= (static_cast<double>(client_height_) /
                  static_cast<double>(actual_height_));
     }
@@ -221,6 +225,7 @@ bool ServeScaledImages::AppendResults(const RuleInput& rule_input,
   }
 
   bool ok = true;
+  bool is_responsive = document->IsResponsive();
   ImageDataMap image_data_map;
   ScaledImagesChecker visitor(&rule_input, document, &image_data_map);
   document->Traverse(&visitor);
@@ -256,8 +261,11 @@ bool ServeScaledImages::AppendResults(const RuleInput& rule_input,
 
     const int original_size = size_entry->second;
     const int bytes_saved = original_size -
-        static_cast<int>(image_data->GetCompressionFactor() *
+        static_cast<int>(image_data->GetCompressionFactor(is_responsive) *
                          static_cast<double>(original_size));
+    if (!bytes_saved) {
+      continue;
+    }
 
     Result* result = provider->NewResult();
     result->set_original_response_bytes(original_size);

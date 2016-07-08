@@ -296,6 +296,10 @@ std::string FakeDomDocument::GetBaseUrl() const {
   return url_;
 }
 
+bool FakeDomDocument::IsResponsive() const {
+  return false;
+}
+
 void FakeDomDocument::Traverse(pagespeed::DomElementVisitor* visitor) const {
   PreOrderFakeElementTraverser traverser(GetDocumentElement());
   if (traverser.CurrentElement() == NULL) {
