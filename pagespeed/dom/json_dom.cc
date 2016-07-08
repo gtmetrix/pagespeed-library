@@ -156,19 +156,21 @@ bool JsonElement::GetAttributeByName(const std::string& name,
 
 JsonElement::Status
 JsonElement::HasWidthSpecified(bool* out_width_specified) const {
-  // TODO(mdsteele): Also detect if width is specified in CSS.
-  std::string value;
-  *out_width_specified = (GetAttributeByName("width", &value) &&
-                          !value.empty());
+  if (!json_->GetBoolean("hasWidthSpecified", *out_width_specified)) {
+    std::string value;
+    *out_width_specified = (GetAttributeByName("width", &value) &&
+                            !value.empty());
+  }
   return SUCCESS;
 }
 
 JsonElement::Status
 JsonElement::HasHeightSpecified(bool* out_height_specified) const {
-  // TODO(mdsteele): Also detect if height is specified in CSS.
-  std::string value;
-  *out_height_specified = (GetAttributeByName("height", &value) &&
-                           !value.empty());
+  if (!json_->GetBoolean("hasHeightSpecified", *out_height_specified)) {
+    std::string value;
+    *out_height_specified = (GetAttributeByName("height", &value) &&
+                            !value.empty());
+  }
   return SUCCESS;
 }
 
