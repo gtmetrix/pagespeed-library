@@ -129,7 +129,7 @@
       'type': '<(library)',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libwebp/libwebp.gyp:libwebp',
+        '<(DEPTH)/build/libwebp.gyp:libwebp',
       ],
       'sources': [
         'webp_optimizer.cc',

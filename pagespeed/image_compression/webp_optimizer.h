@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include "third_party/libwebp/webp/encode.h"
+#include "third_party/libwebp/src/webp/encode.h"
 
 #include "pagespeed/image_compression/scanline_interface.h"
 

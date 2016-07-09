@@ -44,6 +44,10 @@ deps = {
   "src/third_party/libjpeg_turbo/yasm/binaries":
     Var("chromium_git") + "/chromium/deps/yasm/binaries@52f9b3f4b0aa06da24ef8b123058bb61ee468881",
 
+  # 0.5.1
+  "src/third_party/libwebp":
+    Var("chromium_git") + "/webm/libwebp@3d97bb75144147e47db278ec76e5e70c6b2243db",
+
   "src/third_party/protobuf":
     "https://src.chromium.org/svn/trunk/src/third_party/protobuf@161115",
 
