@@ -232,7 +232,7 @@
         '<(pagespeed_root)/pagespeed/testing/testing.gyp:pagespeed_testing',
         '<(pagespeed_root)/pagespeed/testing/testing.gyp:pagespeed_test_main',
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libjpeg/libjpeg.gyp:libjpeg',
+        '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
         '<(DEPTH)/third_party/libpng/libpng.gyp:libpng',
       ],
       'include_dirs': [

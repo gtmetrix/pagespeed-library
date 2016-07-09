@@ -25,7 +25,7 @@
         'pagespeed_jpeg_reader',
         'pagespeed_png_optimizer',
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libjpeg/libjpeg.gyp:libjpeg',
+        '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
         '<(DEPTH)/third_party/libpng/libpng.gyp:libpng',
         '<(pagespeed_root)/pagespeed/core/core.gyp:pagespeed_core',
       ],
@@ -67,7 +67,7 @@
       'type': '<(library)',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libjpeg/libjpeg.gyp:libjpeg',
+        '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
       ],
       'sources': [
         'jpeg_reader.cc',
@@ -88,7 +88,7 @@
       'dependencies': [
         'pagespeed_jpeg_reader',
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libjpeg/libjpeg.gyp:libjpeg',
+        '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
       ],
       'sources': [
         'jpeg_utils.cc',
@@ -109,7 +109,7 @@
       'dependencies': [
         'pagespeed_jpeg_reader',
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libjpeg/libjpeg.gyp:libjpeg',
+        '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
       ],
       'sources': [
         'jpeg_optimizer.cc',
@@ -227,7 +227,7 @@
       'dependencies': [
         'pagespeed_jpeg_reader',
         '<(DEPTH)/base/base.gyp:base',
-        '<(DEPTH)/third_party/libjpeg/libjpeg.gyp:libjpeg',
+        '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
       ],
       'sources': [
         'jpeg_optimizer_test_helper.cc',

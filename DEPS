@@ -35,6 +35,15 @@ deps = {
   "src/third_party/modp_b64":
     Var("chromium_git") + "/chromium/src/third_party/modp_b64@42c1fe9d5a2d17370edf2debb365f6660e2aef3a",
 
+  "src/third_party/libjpeg_turbo/src":
+    Var("chromium_git") + "/chromium/deps/libjpeg_turbo@7260e4d8b8e1e40b17f03fafdf1cd83296900f76",
+
+  "src/third_party/libjpeg_turbo/yasm/source/patched-yasm":
+    Var("chromium_git") + "/chromium/deps/yasm/patched-yasm@7da28c6c7c6a1387217352ce02b31754deb54d2a",
+
+  "src/third_party/libjpeg_turbo/yasm/binaries":
+    Var("chromium_git") + "/chromium/deps/yasm/binaries@52f9b3f4b0aa06da24ef8b123058bb61ee468881",
+
   "src/third_party/protobuf":
     "https://src.chromium.org/svn/trunk/src/third_party/protobuf@161115",
 

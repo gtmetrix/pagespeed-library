@@ -58,14 +58,14 @@ struct ImageCompressionInfo {
 
 ImageCompressionInfo kValidImages[] = {
   { "sjpeg1.jpg", 1552, 1536, 1165, 1774, 1410 },
-  { "sjpeg2.jpg", 3612, 3283, 3630, 3475, 3798 },
   { "sjpeg3.jpg", 44084, 41664, 26924, 40997, 25814 },
-  { "sjpeg4.jpg", 168895, 168240, 51389, 162867, 49186 },
   { "sjpeg6.jpg", 149600, 147163, 89671, 146038, 84641 },
-  { "test411.jpg", 6883, 4367, 3709, 4540, 3854 },
-  { "test420.jpg", 6173, 3657, 3653, 3796, 3793 },
-  { "test422.jpg", 6501, 3985, 3712, 4152, 3849 },
   { "testgray.jpg", 5014, 3072, 3060, 3094, 3078 },
+  { "sjpeg2.jpg", 3612, 3283, 3652, 3475, 3833 },
+  { "sjpeg4.jpg", 168895, 168240, 50936, 162867, 48731 },
+  { "test411.jpg", 6883, 4367, 3705, 4540, 3849 },
+  { "test420.jpg", 6173, 3657, 3651, 3796, 3787 },
+  { "test422.jpg", 6501, 3985, 3709, 4152, 3852 },
 };
 
 const char *kInvalidFiles[] = {
@@ -158,7 +158,7 @@ TEST(JpegOptimizerTest, ValidJpegsLossy) {
 }
 
 TEST(JpegOptimizerTest, ValidJpegLossyAndColorSampling) {
-  int test_422_file_idx = 7;
+  int test_422_file_idx = 8;
   std::string src_data;
   std::string src_filename = kValidImages[test_422_file_idx].filename;
   ReadJpegToString(src_filename, &src_data);

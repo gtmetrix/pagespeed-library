@@ -30,8 +30,8 @@ extern "C" {
 #include "jpeglib.h"
 #include "jerror.h"
 #else
-#include "third_party/libjpeg/jpeglib.h"
-#include "third_party/libjpeg/jerror.h"
+#include "third_party/libjpeg_turbo/src/jpeglib.h"
+#include "third_party/libjpeg_turbo/src/jerror.h"
 #endif
 }
 

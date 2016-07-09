@@ -28,6 +28,10 @@
     # Copy conditionally-set variables out one scope.
     'build_nacl%': '<(build_nacl)',
 
+    # Disable memory sanitizer for libjpeg_turbo (not sure if this is the right
+    # way to do it)
+    'msan%': 0,
+
     # This should normally be passed in by gclient's hooks.
     'chromium_revision%': 161115,
 

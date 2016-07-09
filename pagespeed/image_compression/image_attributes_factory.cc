@@ -20,7 +20,7 @@ extern "C" {
 #ifdef USE_SYSTEM_LIBJPEG
 #include "jpeglib.h"
 #else
-#include "third_party/libjpeg/jpeglib.h"
+#include "third_party/libjpeg_turbo/src/jpeglib.h"
 #endif
 #ifdef USE_SYSTEM_LIBPNG
 #include "png.h"
