@@ -18,7 +18,8 @@ Use `gclient` (included with depot_tools) to pull in the Page Speed source and i
 ```shell
 mkdir page-speed-library
 cd page-speed-library
-gclient config https://github.com/gtmetrix/page-speed-library.git --name=src
+gclient config https://github.com/gtmetrix/page-speed-library.git --name=src --unmanaged
+git clone https://github.com/gtmetrix/page-speed-library.git src
 gclient sync
 ```
 Finally to compile Page Speed:
@@ -29,5 +30,11 @@ make -j4 BUILDTYPE=Release
 
 ## Update
 ```
+cd page-speed-library/src
+git pull
 gclient sync --force
 ```
+
+## Notes
+
+* Page Speed originally had support for building in Windows and Mac, but recent changes have only been tested in Linux
