@@ -38,3 +38,4 @@ gclient sync --force
 ## Notes
 
 * Page Speed originally had support for building in Windows and Mac, but recent changes have only been tested in Linux
+* The code still depends on an old version of Chromium code so it seems to only build on GCC 4.7
