@@ -1,4 +1,4 @@
-# Page Speed Insights
+# PageSpeed Insights
 
 This is a fork of https://github.com/pagespeed/page-speed with the following changes:
 
@@ -14,15 +14,15 @@ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 # Add depot_tools to $PATH
 export PATH="$PATH:`pwd`/depot_tools"
 ```
-Use `gclient` (included with depot_tools) to pull in the Page Speed source and its dependencies:
+Use `gclient` (included with depot_tools) to pull in the PageSpeed source and its dependencies:
 ```shell
-mkdir page-speed-library
-cd page-speed-library
-gclient config https://github.com/gtmetrix/page-speed-library.git --name=src --unmanaged
-git clone https://github.com/gtmetrix/page-speed-library.git src
+mkdir pagespeed-library
+cd pagespeed-library
+gclient config https://github.com/gtmetrix/pagespeed-library.git --name=src --unmanaged
+git clone https://github.com/gtmetrix/pagespeed-library.git src
 gclient sync
 ```
-Finally to compile Page Speed:
+Finally to compile PageSpeed:
 ```
 cd src
 make -j4 BUILDTYPE=Release
@@ -30,12 +30,12 @@ make -j4 BUILDTYPE=Release
 
 ## Update
 ```
-cd page-speed-library/src
+cd pagespeed-library/src
 git pull
 gclient sync --force
 ```
 
 ## Notes
 
-* Page Speed originally had support for building in Windows and Mac, but recent changes have only been tested in Linux
+* PageSpeed originally had support for building in Windows and Mac, but recent changes have only been tested in Linux
 * The code still depends on an old version of Chromium code so it seems to only build on GCC 4.7
