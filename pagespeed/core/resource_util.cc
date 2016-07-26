@@ -524,6 +524,15 @@ bool IsParserInserted(const ResourceEvaluation& evaluation) {
          fetch->GetDiscoveryType() == pagespeed::DOCUMENT_WRITE;
 }
 
+bool WasDeliveredWithSpdy(const Resource& resource) {
+  if (resource.GetResponseProtocol() == HTTP_2) {
+    return false;
+  }
+
+  const std::string& spdy_header = resource.GetResponseHeader("X-Firefox-Spdy");
+  return !spdy_header.empty() && !string_util::StringCaseStartsWith(spdy_header, "h2");
+}
+
 
 // Deprecated functions
 
