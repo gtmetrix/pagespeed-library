@@ -17,15 +17,19 @@ vars = {
 }
 
 deps = {
+  # Chromium SVN@161115
   "src/testing":
     Var("chromium_git") + "/chromium/src/testing@ba768d0e259684b5a1912d1330b7fd511df4f647",
 
+  # Chromium SVN@161115
   "src/third_party/chromium/src/base":
     Var("chromium_git") + "/chromium/src/base@f86bdec26aea6b2b056c89a83f5a4fafdcb96e73",
 
+  # Chromium SVN@161115
   "src/third_party/chromium/src/build":
     Var("chromium_git") + "/chromium/src/build@4e3e69ad445b72e75b32c623003fd8843d6f17af",
 
+  # Latest (2015/09/11)
   "src/third_party/domain_registry_provider":
     "https://github.com/pagespeed/domain-registry-provider.git@e9b72eaef413335eb054a5982277cb2e42eaead7",
 
@@ -47,12 +51,15 @@ deps = {
   "src/third_party/libwebp":
     Var("chromium_git") + "/webm/libwebp@3d97bb75144147e47db278ec76e5e70c6b2243db",
 
+  # googlecode SVN@2456
   "src/third_party/mod_pagespeed":
     "https://github.com/pagespeed/mod_pagespeed.git@65c07fc394d56ea7d74f6b65a7b3d12fb4ab1b6c",
 
+  # Chromium SVN@161115
   "src/third_party/modp_b64":
     Var("chromium_git") + "/chromium/src/third_party/modp_b64@42c1fe9d5a2d17370edf2debb365f6660e2aef3a",
 
+  # Chromium SVN@161115
   "src/third_party/protobuf":
     "https://src.chromium.org/svn/trunk/src/third_party/protobuf@161115",
 
@@ -62,21 +69,27 @@ deps = {
   "src/third_party/protobuf/java/descriptor":
     File("https://github.com/google/protobuf/tags/v2.4.1/src/google/protobuf/descriptor.proto"),
 
+  # Chromium SVN@161115
   "src/googleurl":
     Var("chromium_git") + "/external/google-url@eb8b21b16f6e39375bf4048567d4844027e47186",
 
+  # Chromium SVN@161115
   "src/testing/gmock":
     "https://github.com/google/googlemock.git@79a367eb217fcd47e2beaf8c0f87fe6d5926f739",
 
+  # Chromium SVN@161115
   "src/testing/gtest":
     "https://github.com/google/googletest.git@2147489625ea8071ca560462f19b1ceb8940a229",
 
+  # Chromium SVN@161115
   "src/tools/clang":
     Var("chromium_git") + "/chromium/src/tools/clang@b363ee90f841578d66b4c4f6481f0107bcf800e9",
 
+  # Chromium SVN@161115
   "src/tools/grit":
     Var("chromium_git") + "/external/grit-i18n@83717e82a9b5e0c629ff4f1078d50503ffd2ae75",
 
+  # Chromium SVN@161115
   "src/tools/gyp":
     Var("chromium_git") + "/external/gyp@523297f43e0c96a84e53306f8fddebeb483b27f1",
 }
