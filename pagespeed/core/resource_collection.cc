@@ -388,8 +388,6 @@ void RedirectRegistry::Init(const ResourceCollection& resource_collection) {
     // Primary resource is missing or primary resource URL is not set. Use the
     // last the resource of the fix-up chain as the primary resource.
     primary_resource = fixup_chain.back();
-  } else {
-    DCHECK(fixup_chain.back() == primary_resource);
   }
   const RedirectChain* primary_chain =
       GetRedirectChainOrNull(primary_resource);
