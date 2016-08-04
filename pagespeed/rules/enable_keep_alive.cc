@@ -79,6 +79,10 @@ bool EnableKeepAlive::AppendResults(const RuleInput& rule_input,
     if (resource.GetResponseProtocol() == UNKNOWN_PROTOCOL) {
       // Skip the resouce.
       continue;
+    } else if (resource.GetResponseProtocol() == HTTP_2) {
+      // The Connection header is obsolete in HTTP/2.
+      // see: http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2.2
+      continue;
     } else if (resource.GetResponseProtocol() == HTTP_11) {
       // Keep-Alive is default in HTTP/1.1. If it is not "close", then
       // Keep-Alive is enabled.
