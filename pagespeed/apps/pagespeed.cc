@@ -151,8 +151,8 @@ void PrintLocales() {
 void PrintVersion() {
   pagespeed::Version version;
   pagespeed::GetPageSpeedVersion(&version);
-  fprintf(stderr, "Page Speed v%d.%d. %s\n",
-          version.major(), version.minor(),
+  fprintf(stderr, "Page Speed v%d.%d%s. %s\n",
+          version.major(), version.minor(), version.extra().c_str(),
           (version.official_release() ? "" : "(unofficial release)"));
 #ifndef NDEBUG
   fprintf(stderr, "Debug build.\n");
