@@ -71,7 +71,9 @@ bool MinimizeRequestSize::AppendResults(const RuleInput& rule_input,
     const Resource& resource = input.GetResource(idx);
 
     int request_bytes = resource_util::EstimateRequestBytes(resource);
-    if (request_bytes > kMaximumRequestSize) {
+    // Any request with a body isn't going to be one that's expected to fit
+    // into a single packet.
+    if (request_bytes > kMaximumRequestSize && resource.GetRequestBody().size() == 0) {
       Result* result = provider->NewResult();
       result->set_original_request_bytes(request_bytes);
       result->add_resource_urls(resource.GetRequestUrl());
