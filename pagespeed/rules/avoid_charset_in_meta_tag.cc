@@ -271,10 +271,10 @@ bool AvoidCharsetInMetaTag::HasMetaCharsetTag(
   return *out_meta_charset_begin_line_number > 0;
 }
 
-bool AvoidCharsetInMetaTag::IsExperimental() const {
-  // TODO(bmcquade): Before graduating from experimental:
-  // * implement ComputeResultImpact
-  return true;
+double AvoidCharsetInMetaTag::ComputeResultImpact(
+    const InputInformation& input_info, const Result& result) {
+  // TODO: Only an issue with IE8 which is pretty ancient now.
+  return 0.0;
 }
 
 }  // namespace rules

@@ -38,7 +38,6 @@ class AvoidCharsetInMetaTag : public Rule {
   virtual bool AppendResults(const RuleInput& input, ResultProvider* provider);
   virtual void FormatResults(const ResultVector& results,
                              RuleFormatter* formatter);
-  virtual bool IsExperimental() const;
 
   // Exposed only for testing.
   static bool HasMetaCharsetTag(
@@ -46,6 +45,10 @@ class AvoidCharsetInMetaTag : public Rule {
       const std::string& html_body,
       std::string* out_meta_charset_content,
       int* out_meta_charset_begin_line_number);
+
+ protected:
+  virtual double ComputeResultImpact(const InputInformation& input_info,
+                                     const Result& result);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AvoidCharsetInMetaTag);
