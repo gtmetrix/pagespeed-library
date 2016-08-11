@@ -71,7 +71,8 @@ bool EnableKeepAlive::AppendResults(const RuleInput& rule_input,
       continue;
     }
 
-    if (directives.find("keep-alive") != directives.end()) {
+    if (directives.find("keep-alive") != directives.end() &&
+        directives.find("close") == directives.end()) {
       // Keep-Alive is explicitly enabled.
       continue;
     }
