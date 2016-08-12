@@ -72,7 +72,7 @@ message ClientCharacteristics {
   // Relative impact per response byte saved.
   optional double response_bytes_weight = 3        [default = 0.0001];
   // Relative impact per reflow saved.
-  optional double page_reflows_weight = 4          [default = 0.001];
+  optional double page_reflows_weight = 4          [default = 0.02];
   // Relative impact per reqeust byte saved.
   optional double request_bytes_weight = 5         [default = 0.0005];
   // Relative impact per critical path length reduced.
