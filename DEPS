@@ -59,10 +59,6 @@ deps = {
   "src/third_party/modp_b64":
     Var("chromium_git") + "/chromium/src/third_party/modp_b64@42c1fe9d5a2d17370edf2debb365f6660e2aef3a",
 
-  # Chromium SVN@161115
-  "src/third_party/protobuf":
-    "https://src.chromium.org/svn/trunk/src/third_party/protobuf@161115",
-
   "src/third_party/protobuf/java":
     "https://github.com/google/protobuf/tags/v2.4.1/java/src/main/java",
 

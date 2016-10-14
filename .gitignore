@@ -10,7 +10,7 @@ third_party/libjpeg_turbo/yasm/source/patched-yasm/
 third_party/libwebp/
 third_party/mod_pagespeed/
 third_party/modp_b64/
-third_party/protobuf/
+third_party/protobuf/java/
 tools/
 Makefile
 *.Makefile
