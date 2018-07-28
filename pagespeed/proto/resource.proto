@@ -259,7 +259,8 @@ enum ImageType {
   PNG = 1;
   GIF = 2;
   SVG = 3;
-  UNKNOWN_IMAGE_TYPE = 4;
+  WEBP = 4;
+  UNKNOWN_IMAGE_TYPE = 5;
 }
 
 // A message containing a header name/value pair.

@@ -42,6 +42,8 @@ extern "C" {
 #include "pagespeed/image_compression/gif_reader.h"
 #include "pagespeed/image_compression/jpeg_reader.h"
 #include "pagespeed/image_compression/png_optimizer.h"
+#include "pagespeed/image_compression/webp_optimizer.h"
+#include "pagespeed/image_compression/scanline_interface.h"
 
 namespace {
 
@@ -109,6 +111,18 @@ bool GetGifWidthAndHeight(const pagespeed::Resource* resource,
                                         out_height);
 }
 
+bool GetWebpWidthAndHeight(const std::string image_string,
+                          int* out_width,
+                          int* out_height) {
+  pagespeed::image_compression::WebpScanlineReader reader;
+  if (reader.InitializeWithStatus(image_string.data(), image_string.length())) {
+    *out_height = static_cast<unsigned int>(reader.GetImageHeight());
+    *out_width  = static_cast<unsigned int>(reader.GetImageWidth());
+    return true;
+  }
+  return false;
+}
+
 }  // namespace
 
 namespace pagespeed {
@@ -138,6 +152,11 @@ ImageAttributes * ImageAttributesFactory::NewImageAttributes(
       break;
     case pagespeed::GIF:
       if (!GetGifWidthAndHeight(resource, &width, &height)) {
+        return NULL;
+      }
+      break;
+    case pagespeed::WEBP:
+      if (!GetWebpWidthAndHeight(resource->GetResponseBody(), &width, &height)) {
         return NULL;
       }
       break;

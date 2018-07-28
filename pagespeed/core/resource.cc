@@ -402,6 +402,8 @@ ImageType Resource::GetImageType() const {
     } else if (StringCaseEndsWith(path, ".jpg") ||
                StringCaseEndsWith(path, ".jpeg")) {
       return JPEG;
+    } else if (StringCaseEndsWith(path, ".webp")) {
+      return WEBP;
     } else if (StringCaseEndsWith(path, ".svg")) {
       return SVG;
     }
@@ -418,6 +420,8 @@ ImageType Resource::GetImageType() const {
     } else if (StringCaseEqual(type, "image/jpg") ||
                StringCaseEqual(type, "image/jpeg")) {
       return JPEG;
+    } else if (StringCaseEqual(type, "image/webp")) {
+      return WEBP;
     } else if (StringCaseEqual(type, "image/svg+xml")) {
       return SVG;
     }

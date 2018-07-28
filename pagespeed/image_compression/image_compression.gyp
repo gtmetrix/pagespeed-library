@@ -24,6 +24,7 @@
       'dependencies': [
         'pagespeed_jpeg_reader',
         'pagespeed_png_optimizer',
+        'pagespeed_webp_optimizer',
         '<(DEPTH)/base/base.gyp:base',
         '<(DEPTH)/third_party/libjpeg_turbo/libjpeg_turbo.gyp:libjpeg_turbo',
         '<(DEPTH)/third_party/libpng/libpng.gyp:libpng',
