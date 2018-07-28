@@ -20,7 +20,7 @@ namespace {
 
 const int kPagespeedMajorVersion = 1;
 const int kPagespeedMinorVersion = 15;
-const std::string kPagespeedExtraVersion = "-gt1";
+const std::string kPagespeedExtraVersion = "-gt1.1";
 const bool kRelease = false;
 
 }  // namespace
