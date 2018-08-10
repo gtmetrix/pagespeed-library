@@ -81,9 +81,9 @@ bool SpriteImages::AppendResults(const RuleInput& rule_input,
       continue;
     }
 
-    // Exclude images other than PNG and GIF.
+    // Exclude images other than PNG, GIF and WEBP.
     const ImageType type = resource.GetImageType();
-    if (type != PNG && type != GIF) {
+    if (type != PNG && type != GIF && type != WEBP) {
       continue;
     }
 
