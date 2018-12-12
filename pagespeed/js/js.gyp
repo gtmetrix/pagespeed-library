@@ -31,6 +31,10 @@
       'include_dirs': [
         '<(pagespeed_root)',
       ],
+      'dependencies': [
+        '<(DEPTH)/base/base.gyp:base',
+        'pagespeed_javascript_gperf',
+      ],
       'direct_dependent_settings': {
         'include_dirs': [
           '<(pagespeed_root)',
@@ -39,6 +43,19 @@
       'export_dependent_settings': [
         '<(DEPTH)/base/base.gyp:base',
       ],
+    },
+    {
+      'target_name': 'pagespeed_javascript_gperf',
+      'variables': {
+        'instaweb_gperf_subdir': 'js',
+        'instaweb_root':  '<(DEPTH)/pagespeed',
+      },
+      'sources': [
+        'js_keywords.gperf',
+      ],
+      'includes': [
+        '../../third_party/mod_pagespeed/src/net/instaweb/gperf.gypi',
+      ]
     },
   ],
 }

@@ -13,11 +13,14 @@
 // limitations under the License.
 
 #include "pagespeed/js/js_minify.h"
+#include "pagespeed/js/js_keywords.h"
 
 #include <string>
 
 #include "base/logging.h"
 #include "base/string_piece.h"
+
+using pagespeed::JsKeywords;
 
 namespace {
 
@@ -39,7 +42,7 @@ const int kStringToken = 259;  // a string literal
 // expression (which could mess up linebreak removal or differentiating between
 // division and regexes).
 const int kNameNumberToken = 260; // name, number, or keyword other than return
-const int kReturnThrowToken = 261;  // the return or throw keyword
+const int kKeywordCanPrecedeRegExToken = 261;
 // The ++ and -- tokens affect the semicolon insertion rules in Javascript, so
 // we need to track them carefully in order to get whitespace removal right.
 // Other multicharacter operators (such as += or ===) can just be treated as
@@ -285,7 +288,7 @@ void Minifier<OutputConsumer>::ConsumeLineComment() {
 template<typename OutputConsumer>
 void Minifier<OutputConsumer>::ConsumeNameOrNumber() {
   if (prev_token_ == kNameNumberToken ||
-      prev_token_ == kReturnThrowToken ||
+      prev_token_ == kKeywordCanPrecedeRegExToken ||
       prev_token_ == kRegexToken) {
     InsertSpaceIfNeeded();
   }
@@ -295,13 +298,14 @@ void Minifier<OutputConsumer>::ConsumeNameOrNumber() {
     ++index_;
   }
   // For the most part, we can just treat keywords the same as identifiers, and
-  // we'll still minify correctly.  However, the return and throw keywords in
-  // particular must be treated differently, to help us tell the difference
-  // between regex literals and division operators:
+  // we'll still minify correctly. However, some keywords (like return and
+  // throw) in particular must be treated differently, to help us tell the
+  // difference between regex literals and division operators:
   //   return/ x /g;  // this returns a regex literal; preserve whitespace
   //   reTurn/ x /g;  // this performs two divisions; remove whitespace
-  ChangeToken(token == "return" || token == "throw" ?
-              kReturnThrowToken : kNameNumberToken);
+  ChangeToken(JsKeywords::CanKeywordPrecedeRegEx(token)
+                ? kKeywordCanPrecedeRegExToken
+                : kNameNumberToken);
   output_.append(token);
 }
 
