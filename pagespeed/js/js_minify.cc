@@ -354,7 +354,7 @@ void Minifier<OutputConsumer>::ConsumeString() {
   DCHECK(index_ < input_.size());
   const int begin = index_;
   const char quote = input_[begin];
-  DCHECK(quote == '"' || quote == '\'');
+  DCHECK(quote == '"' || quote == '\'' || quote == '`');
   ++index_;
   while (index_ < input_.size()) {
     const char ch = input_[index_];
@@ -396,7 +396,7 @@ void Minifier<OutputConsumer>::Minify() {
       ++index_;
     }
     // Strings:
-    else if (ch == '\'' || ch == '"') {
+    else if (ch == '\'' || ch == '"' || ch == '`') {
       ConsumeString();
     }
     // A slash could herald a line comment, a block comment, a regex literal,
