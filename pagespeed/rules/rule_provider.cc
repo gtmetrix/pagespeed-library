@@ -34,7 +34,6 @@
 #include "pagespeed/rules/load_visible_images_first.h"
 #include "pagespeed/rules/make_landing_page_redirects_cacheable.h"
 #include "pagespeed/rules/minify_css.h"
-#include "pagespeed/rules/minify_html.h"
 #include "pagespeed/rules/minify_javascript.h"
 #include "pagespeed/rules/minimize_dns_lookups.h"
 #include "pagespeed/rules/minimize_redirects.h"
@@ -45,12 +44,10 @@
 #include "pagespeed/rules/parallelize_downloads_across_hostnames.h"
 #include "pagespeed/rules/prefer_async_resources.h"
 #include "pagespeed/rules/put_css_in_the_document_head.h"
-#include "pagespeed/rules/remove_query_strings_from_static_resources.h"
 #include "pagespeed/rules/serve_resources_from_a_consistent_url.h"
 #include "pagespeed/rules/serve_scaled_images.h"
 #include "pagespeed/rules/server_response_time.h"
 #include "pagespeed/rules/specify_a_cache_validator.h"
-#include "pagespeed/rules/specify_a_vary_accept_encoding_header.h"
 #include "pagespeed/rules/specify_charset_early.h"
 #include "pagespeed/rules/specify_image_dimensions.h"
 #include "pagespeed/rules/sprite_images.h"
@@ -74,19 +71,16 @@ static const char* kCoreRules[] = {
   "inlinesmalljavascript",
   "leveragebrowsercaching",
   "minifycss",
-  "minifyhtml",
   "minifyjavascript",
   "minimizeredirects",
   "minimizerequestsize",
   "optimizeimages",
   "optimizetheorderofstylesandscripts",
   "putcssinthedocumenthead",
-  "removequerystringsfromstaticresources",
   "serveresourcesfromaconsistenturl",
   "serverresponsetime",
   "servescaledimages",
   "specifyacachevalidator",
-  "specifyavaryacceptencodingheader",
   "specifycharsetearly",
   "specifyimagedimensions",
   "spriteimages",
@@ -185,7 +179,6 @@ Rule* CreateRuleWithName(bool save_optimized_content, const std::string& name) {
   RULE("makelandingpageredirectscacheable",
        rules::MakeLandingPageRedirectsCacheable());
   RULE("minifycss", rules::MinifyCss(save_optimized_content));
-  RULE("minifyhtml", rules::MinifyHTML(save_optimized_content));
   RULE("minifyjavascript", rules::MinifyJavaScript(save_optimized_content));
   RULE("minimizednslookups", rules::MinimizeDnsLookups());
   RULE("minimizeredirects", rules::MinimizeRedirects());
@@ -198,15 +191,11 @@ Rule* CreateRuleWithName(bool save_optimized_content, const std::string& name) {
        rules::ParallelizeDownloadsAcrossHostnames());
   RULE("preferasyncresources", rules::PreferAsyncResources());
   RULE("putcssinthedocumenthead", rules::PutCssInTheDocumentHead());
-  RULE("removequerystringsfromstaticresources",
-       rules::RemoveQueryStringsFromStaticResources());
   RULE("serveresourcesfromaconsistenturl",
        rules::ServeResourcesFromAConsistentUrl());
   RULE("servescaledimages", rules::ServeScaledImages());
   RULE("serverresponsetime", rules::ServerResponseTime());
   RULE("specifyacachevalidator", rules::SpecifyACacheValidator());
-  RULE("specifyavaryacceptencodingheader",
-       rules::SpecifyAVaryAcceptEncodingHeader());
   RULE("specifycharsetearly", rules::SpecifyCharsetEarly());
   RULE("specifyimagedimensions", rules::SpecifyImageDimensions());
   RULE("spriteimages", rules::SpriteImages());
