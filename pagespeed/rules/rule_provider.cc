@@ -40,7 +40,6 @@
 #include "pagespeed/rules/minimize_request_size.h"
 #include "pagespeed/rules/mobile_viewport.h"
 #include "pagespeed/rules/optimize_images.h"
-#include "pagespeed/rules/optimize_the_order_of_styles_and_scripts.h"
 #include "pagespeed/rules/parallelize_downloads_across_hostnames.h"
 #include "pagespeed/rules/prefer_async_resources.h"
 #include "pagespeed/rules/put_css_in_the_document_head.h"
@@ -75,7 +74,6 @@ static const char* kCoreRules[] = {
   "minimizeredirects",
   "minimizerequestsize",
   "optimizeimages",
-  "optimizetheorderofstylesandscripts",
   "putcssinthedocumenthead",
   "serveresourcesfromaconsistenturl",
   "serverresponsetime",
@@ -185,8 +183,6 @@ Rule* CreateRuleWithName(bool save_optimized_content, const std::string& name) {
   RULE("minimizerequestsize", rules::MinimizeRequestSize());
   RULE("mobileviewport", rules::MobileViewport());
   RULE("optimizeimages", rules::OptimizeImages(save_optimized_content));
-  RULE("optimizetheorderofstylesandscripts",
-       rules::OptimizeTheOrderOfStylesAndScripts());
   RULE("parallelizedownloadsacrosshostnames",
        rules::ParallelizeDownloadsAcrossHostnames());
   RULE("preferasyncresources", rules::PreferAsyncResources());
